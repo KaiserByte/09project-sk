@@ -1,5 +1,5 @@
 # 09project-sk
-A tale of misfortune in the form of some bad Minecraft server script files
+A tale of misfortune in the form of some bad Minecraft server script files (2020-2021)
 
 # Disclaimer
 
