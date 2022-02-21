@@ -3,7 +3,7 @@ A tale of misfortune in the form of some bad Minecraft server script files
 
 # Disclaimer
 
-These are merely for educational purposes on what NOT to do when making a Minecraft server. I'd recommend learning Java instead of using a scripting plugin like this, even though I'm a massive idiot when it comes to real programming. The use of these scripts is not recommended and most likely won't work properly.
+These are merely for educational purposes on what NOT to do when making a Minecraft server. I'd recommend learning Java instead of using a scripting plugin like this, even though I'm a massive idiot when it comes to real programming. The use of these scripts is not recommended and most likely won't work properly. Skript requires a beast of a server to parse scripts with minimal lag.
 
 # About
 
