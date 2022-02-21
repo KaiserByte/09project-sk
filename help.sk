@@ -25,7 +25,7 @@ on join:
         send "  &8░&b⬛&8░&b⬛&8░&b⬛&8░░&b⬛⬛⬛⬛&8░"
         json("%player%", "  &8░&b⬛⬛&8░░&b⬛&8░░░░░&b⬛&8░  ||&a> &nFAQ||ttp:&aClick here to view frequently-asked questions.||cmd:/faq")
         send "  &8░&b⬛&8░░░&b⬛&8░░░░&b⬛&8░░"
-        json("%player%", "  &8░░&b⬛⬛⬛&8░░░&b⬛⬛&8░░░  ||&a> &nDiscord||ttp:&aClick here to join the &b09&7project &adiscord server.||url:https://cblt.me/YBVOOE")
+        json("%player%", "  &8░░&b⬛⬛⬛&8░░░&b⬛⬛&8░░░  ||&a> &nDiscord||ttp:&aClick here to join the &b09&7project &adiscord server.||url:example.com")
         send "&b"
     {motdtype::%player's uuid%} == 1:
         send "&c> &aWelcome to &b09&a."
@@ -60,7 +60,7 @@ command /faq:
 command /discord:
     trigger:
         send "&b"
-        json("%player%", "         &a&nClick here to join the &b&n09project &a&nDiscord server!||url:cblt.me/YBVOOE")
+        json("%player%", "         &a&nClick here to join the &b&n09project &a&nDiscord server!||url:example.com")
         send "&b"
 command /donate:
     trigger:
@@ -78,7 +78,7 @@ command /giveusyourmoney:
         send "&aYou will not receive anything for donating, other than a feeling of slight regret."
         send "&b"
         send "&aAny amount will be very-much appreciated."
-        json("%player%", "&b&nClick here to give us your money!||url:https://cblt.me/giveusyourmoney")
+        json("%player%", "&b&nClick here to give us your money!||url:https://example.com")
         send "&b"
         send "&a&oP.S., if you want me to personally thank you for donating, include your Minecraft username in the reason/notes section."
         send "&b"
