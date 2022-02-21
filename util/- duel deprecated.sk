@@ -1,0 +1,77 @@
+# Failed duel system that I made before I rewrote it entirely. It's deprecated for a reason.
+
+command /duel [<player>]:
+    cooldown: 75 seconds
+    cooldown message: &cYou must wait %remaining time% before using this command.
+    trigger:
+        arg 1 is not set:
+            send "&cYou've gotta duel &lSOMEONE&c." to player
+            stop
+        arg 1 is player:
+            send "&cYou can't duel yourself." to player
+            stop
+        else if arg 1 is not online:
+            send "&c%arg-1% &cis not online." to player
+        else:
+            {isDueling::%arg-1's uuid%} is not true:
+                {pendingInv::%arg-1's uuid%} doesn't exist:
+                    set {_id2} to random 6 char string from `0-9`
+                    loop {duelKey::*}:
+                        {duelkey::*} contains {_id2}:
+                            set {_id2} to random 6 char string from `0-9`
+                    set {duelKey::%arg-1's uuid%} to {_id2}
+                    send "&7%{duelKey::%arg-1's uuid%}% %arg-1%" to arg 1 and player
+                    set {pendingInv::%arg-1's uuid%} to true
+            else:
+                send "&cYou are already in a duel!" to player
+                stop
+            #
+            {isDueling::%player's uuid%} is not true:
+                {pendingInv::%player's uuid%} doesn't exist:
+                    set {_id1} to random 6 char string from `0-9`
+                    loop {duelKey::*}:
+                        {duelkey::*} contains {_id1}:
+                            set {_id1} to random 6 char string from `0-9`
+                    set {duelKey::%player's uuid%} to {_id1}
+                    send "&7%{duelKey::%player's uuid%}% %player%" to arg 1 and player
+                else:
+                    set {pendingInv::%player's uuid%} to true
+            else:
+                send "&c%arg-1% is already in a duel!" to player
+                stop
+            #
+            send "&b╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯" to player
+            send "&b" to player
+            send "&aYou have challenged &2%arg-1% &ato a duel." to player
+            send "&aThis duel request will expire in 60 seconds."
+            send "&b" to player
+            send "&b╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮" to player
+            #
+            send "&b╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯" to arg 1
+            send "&b" to arg 1
+            send "&2%player% &ahas challenged you to a duel." to arg 1
+            json("%arg-1%", "              &a[&2&lACCEPT&r&a]||ttp:&bSelect this to &aaccept &b%{_event1}%'s duel.||cmd:/acceptduel|| &c[&4&lDENY&r&c]||ttp:&bSelect this to &cdecline &b%{_event1}%'s duel.||cmd:/declineduel||")
+            send "&b" to arg 1
+            send "&b╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮" to arg 1
+            duelPending(player, arg 1)
+
+command /clearkeys:
+    trigger:
+        delete {isDueling::*}
+        delete {pendingInv::*}
+        delete {duelkey::*}
+
+function duelPending(p: player, p2: player):
+    send "test" to {_p} and {_p2}
+    wait 60 seconds
+    set {_u} to uuid of {_p}
+    set {_u2} to uuid of {_p2}
+    {isDueling::%{_u}%} and {isDueling::%{_u2}%} is not true:
+        stop
+    send "&b╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮" to {_p} and {_p2}
+    send "&b" to {_p} and {_p2}
+    send "&aThe duel request sent to &2%{_p2}% &ahas expired." to {_p}
+    send "&aThe duel request sent from &2%{_p}% &ahas expired." to {_p2}
+    send "&b" to {_p} and {_p2}
+    send "&b╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮" to {_p} and {_p2}
+

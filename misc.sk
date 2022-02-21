@@ -1,0 +1,225 @@
+﻿# Outdated and scrapped class description command. Was fully implemented into GUI icon lore.
+
+#command /classdesc:
+#    trigger:
+#        send "&7Warrior:"
+#        send "&7"
+#        send "&7The most generic class you could think of, but slightly worse. Uses a sword that temporarily negates damage when blocked."
+#        send "&7"
+#        send "&7Shield:"
+#        send "&7"
+#        send "&7Activated by blocking the sword; negates (80%% of damage/all damage) taken, but has a 5-second cooldown after use."
+#       send "&7The shield can cancel out arrow damage and even bounce the arrow back, to potentially harm enemies. This causes a 2-second cooldown."
+#        send "&7During cooldown, damage dealt with the sword will be 45%% weaker, and the shield cannot be used."
+#        send "&7"
+#        send "&7Ultimate:"
+#        send "&7"
+#        send "&7Ultimates are one-time use buffs that last for a temporary amount of time. The Warrior's Ultimate grants the following:"
+#        send "&7- 15 seconds of Strength I"
+#        send "&7- 5 seconds of Regeneration I"
+#        send "&7"
+
+#command /cdsimple:
+#    trigger:
+#        send "&7Warrior:"
+#        send "&7"
+#        send "&7Uses a sword that temporarily negates damage when blocked."
+#        send "&7"
+#        send "&7Shield:"
+#        send "&7"
+#        send "&7Activated by blocking the sword; negates (80%% of damage/all damage) taken, but has a 5-second cooldown after use."
+#        send "&7Cancels out and reflects incoming arrows. This causes a 2-second cooldown."
+#        send "&7Damage dealt with the sword will be 45%% weaker, and the shield cannot be used during cooldown."
+
+# Joke command.
+command /giveadmin:
+    cooldown: 30 seconds
+    cooldown message: &cYou need to wait a little bit before hacking into the mainframe!
+    trigger:
+        send "&aHacking into the mainframe..." to player
+        wait 3 seconds
+        send "&aGetting &4[&cAdmin&4] &arank..." to player
+        wait 5 seconds
+        send "&aExecuting &7""/op %player%&7""&a..." to player
+        wait 10 seconds
+        send "&7&o[Server: Opped %player%&7&o]"
+        send "&aEnjoy your admin priveliges, &4[&cAdmin&4] &c%player%&a."
+
+# Inside-joke command.
+command /reddit:
+    trigger:
+        make player say "free reddit debit credit karma"
+
+# Revenant skeleton targetting attempt (does not work)
+on target:
+    {leader::%event-entity%} contains uuid of target
+    cancel event
+command /entitykill:
+    trigger:
+        loop entities in radius 5 of player:
+            loop-entity is not player:
+                kill loop-entity
+
+# Subtitle bug fix
+command /stuckfix:
+    trigger:
+        send "&fThis fixes stuck subtitles."
+        send subtitle "&f" to player
+
+# Console say command
+command /cs [<text>]:
+    permission: rbp.console
+    trigger:
+        sender is console
+        arg 1 is not set:
+            send "&cYou must send something to broadcast." to console
+        broadcast "&e&oA voice from above says... &r&b""&a%arg-1%&b"""
+
+# Generic command replacement
+on command "/?":
+    cancel event
+    make player execute command "/help"
+on command "/ver":
+    cancel event
+    send "&fWe run the latest build of PaperSpigot on 1.8.9, if you really want to know. Don't go around snooping in places you're not supposed to be in, okay?"
+on command "/me":
+    cancel event
+    send "&fJust use chat, dude."
+# Plugin hider for players that do not have permissions
+on command "/pl" or "/plugins":
+    player does not have permission "rbp.debug":
+        cancel event
+        send "&fPlugins (&k??&r&f): &aJavaPingCMDTest&r, &aEssentialsX&r, &aPlugMan&r, &aPluginTitle&r, &cViaSideways&r, &cPluginTitle&r, &aGimmickCombat&r, &aJavaCancelEventTest&r, &cRevenant&r, &aWalliborder&r, &cViaDiagonal&r, and &k??&r more"
+
+# Debug + heal command
+command /health:
+    permission: rbp.debug
+    trigger:
+        heal the player
+        send "%health of player%" to player
+        set max health of player to 10
+        delete {ult::%player's uuid%}
+        send "%{ult::%player's uuid%}%"
+
+# Debug commands
+command /kickself:
+    trigger:
+        wait 1 tick
+        kick player due to "&fmultilinetest%nl%&bpoopity scoop"
+command /unixts:
+    trigger:
+        send "%unix timestamp of now%" to player
+
+# Anti-OP measures, forcing server owners to OP via console
+on command "/op":
+    sender is a player:
+        send "&cnah lol"
+        cancel event
+
+# Force-spawn method for maps
+command /gotospawn [<text>]:
+    permission: rbp.debug
+    trigger:
+        if arg 1 is not set:
+            send "no arg"
+            stop
+        else:
+            teleport player to {pvpspawn::%arg-1%}
+
+# Essentials-like command, I think? I don't know.
+command /helmettest [<text>]:
+    permission: rbp.debug
+    trigger:
+        if arg 1 is not set:
+            # Very formal!
+            send "no arg so i guess i'll use your held item instead"
+            set helmet of player to player's held item
+        else:
+            set helmet of player to arg-1
+
+# Fun debug function. I attached this function to the Angler's rod and I was zooming across the map.
+
+#function megasplode(p: player):
+#    play sound "random.explode" to {_p}
+#    push {_p} backwards at speed 1
+#    push {_p} upwards at speed 0.3
+
+# Outdated Angler fish function? Is this identical?
+
+#on right click:
+#    name of event-item contains "&fFried Fish"
+#    loop players in radius 10 of player:
+#        play sound "random.eat" to loop-player
+#    cancel event
+#    remove 1 of event-item from player's inventory
+#    {ult::%player's uuid%} is 4
+#    {uhp::%player's uuid%} is set:
+#        heal player by 3 hearts
+#    else:
+#        heal player by 2 hearts
+#    wait 1 tick
+#    slot 8 of player is air:
+#        set slot 8 of player to melon seeds named "&fFish Crumbs" with lore "&7Perhaps with some fishing, you could get some more fish."
+
+# Clone of /help for debugging purposes. Why is there no rbp.debug permission for a debug command?
+command /format:
+    trigger:
+        send "&b"
+        json("%player%", "  &8░░&b⬛⬛⬛&8░░░&b⬛⬛⬛&8░░  ||&a> &nHelp||ttp:&aClick here to view the help page.||cmd:/help")
+        send "  &8░&b⬛&8░░░&b⬛&8░&b⬛&8░░░&b⬛&8░"
+        json("%player%", "  &8░&b⬛&8░░&b⬛⬛&8░&b⬛&8░░░&b⬛&8░  ||&a> &nRules||ttp:&aClick here to view the server rules.||cmd:/rules")
+        send "  &8░&b⬛&8░&b⬛&8░&b⬛&8░░&b⬛⬛⬛⬛&8░"
+        json("%player%", "  &8░&b⬛⬛&8░░&b⬛&8░░░░░&b⬛&8░  ||&a> &nFAQ||ttp:&aClick here to view frequently-asked questions.||cmd:/faq")
+        send "  &8░&b⬛&8░░░&b⬛&8░░░░&b⬛&8░░"
+        json("%player%", "  &8░░&b⬛⬛⬛&8░░░&b⬛⬛&8░░░  ||&a> &nDiscord||ttp:&aClick here to join the &b09&7project &adiscord server.||url:https://cblt.me/YBVOOE")
+        send "&b"
+# What the HELL does this do!?
+on script load:
+    set {ch::*} to 1, and 2
+
+# Ping command, supports other players
+command /ping [<player>]:
+    trigger:
+        if arg 1 is not set:
+            set {_c} to random object out of {ch::*}
+            if {_c} is 1:
+                send "&bPong! &8(&f%player's ping%&7ms&8)" to player
+            if {_c} is 2:
+                send "&bPing! &8(&f%player's ping%&7ms&8)" to player
+            play sound "ENTITY_ITEMFRAME_ADD_ITEM" to player
+        else:
+            if arg 1 is not online:
+                send "&cCouldn't find a player by the name of %arg-1%&c!"
+            else:
+                set {_c} to random object out of {ch::*}
+                if {_c} is 1:
+                    send "&bPonged %display name of arg-1%&b! &8(&f%player-arg's ping%&7ms&8)" to player
+                if {_c} is 2:
+                    send "&bPinged %display name of arg-1%&b! &8(&f%player-arg's ping%&7ms&8)" to player
+                play sound "ENTITY_ITEMFRAME_ADD_ITEM" to player
+
+# First-join promotion events
+on join:
+    {firsttime::%player's uuid%} is not set:
+        wait 1 second
+        send "&aWelcome to &b09project&a, &2%player%&a!"
+        send "&b"
+        send "&aBe sure to check out &2/help &afor commands, &2/rules &afor server guidelines, and &2/faq &afor frequently-asked questions about &b09project&a!"
+        set {firsttime::%player's uuid%} to true
+    # "over a year of dormancy" LOL.
+    {first04::%player's uuid%} is not set:
+        wait 1 second
+        send "&b"
+        send "&aYes, it's true. &b09project &ahas finally updated after over a year of dormancy!"
+        send "&aIntroducing new features like the Aztec arena and the Angler class, balance changes, and the removal of Gilbert, this is very easily our largest content update so far,  and we hope this was worth the wait."
+        json("%player%", "&a&nClick here to view the full change-log!||url:cblt.me/changelog")
+        send "&b"
+        set {first04::%player's uuid%} to true
+command /clearfirstjoin:
+    trigger:
+        send "&aOK"
+        delete {firsttime::%player's uuid%}
+command /clear04update:
+    trigger:
+        send "&aOK"
+        delete {first04::%player's uuid%}

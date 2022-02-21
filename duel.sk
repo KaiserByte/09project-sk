@@ -1,0 +1,483 @@
+# This is genuinely rancid. Have fun trying to figure this out!
+on connect:
+    set {classLimit::%player's uuid%} to 0
+    set {_i} to 0
+    {duelKillReq::%player's uuid%} is not set:
+        set {duelKillReq::%player's uuid%} to 3
+    {mapsel::%player's uuid%} is not set:
+        set {mapsel::%player's uuid%} to 1
+    {canShop::%player's uuid%} is not set:
+        set {canShop::%player's uuid%} to 1
+    {canUlt::%player's uuid%} is not set:
+        set {canUlt::%player's uuid%} to 1
+    loop 5 times:
+        {classToggle::%{_i}%::%player's uuid%} is not set:
+            set {classToggle::%{_i}%::%player's uuid%} to 1
+        set {_i} to {_i} + 1
+    {duelNum::%player's uuid%} is not set:
+        set {duelNum::%player's uuid%} to 0
+    set {_x} to 0
+    loop 5 times:
+        if {duelChk::%{_x}%::%player's uuid%} is not set:
+            set {duelChk::%{_x}%::%player's uuid%} to 0
+        else:
+            exit loop
+        add 1 to {_x}
+
+
+command /d [<player>]:
+    trigger:
+        if arg 1 is set:
+            if arg 1 is online:
+                make player execute command "/duel invite %arg-1%"
+            else:
+                send "&c%arg-1% is not online." to player
+        else:
+            send "&cYou've gotta duel SOMEONE." to player
+
+command /duel [<text>] [<player>]:
+    trigger:
+        set {_a} to arg 1 parsed as player
+        {_a} is online:
+            {isDueling::%player's uuid%} exists:
+                send "&cYou are already in a duel!" to player
+                stop
+            make player execute command "/duel invite %arg-1%"
+            stop
+        arg 1 is "invite":
+            {isDueling::%player's uuid%} exists:
+                send "&cYou are already in a duel!" to player
+                stop
+            arg 2 is not set:
+                send "&cYou've gotta duel SOMEONE." to player
+                stop
+            arg 2 is not online:
+                send "&c%arg-1% is not online." to player
+                stop
+            set {duelInv::%player's uuid%} to arg-2
+            duelMenu0(player, arg-2)
+        
+        arg 1 is "accept":
+            arg 2 is not set:
+                send "&cCould not find player."
+                stop
+            else:
+                {isDueling::%player's uuid%} is true:
+                    send "&cYou are already in a duel!" to player
+                    stop
+                {invFromList::%player's uuid%::*} does not contain arg-2's uuid:
+                    send "&cThis player has either not invited you to a duel, or the duel request has expired." to player
+                    stop
+                else:
+                    duelStart(arg 2, player)
+        arg 1 is "deny" or "decline":
+            arg 2 is not set:
+                send "&cCould not find player."
+                stop
+            else:
+                {isDueling::%player's uuid%} is true:
+                    send "&cYou are already in a duel!" to player
+                    stop
+                {invFromList::%player's uuid%::*} does not contain arg-2's uuid:
+                    send "&cThis player has either not invited you to a duel, or the duel request has expired." to player
+                    stop
+                loop {invFromList::%player's uuid%::*}:
+                    {invFromList::%player's uuid%::*} contains arg-2's uuid:
+                        remove arg-2's uuid from {invFromList::%player's uuid%::*}
+                    {invFromList::%player's uuid%::*} does not contain arg-2's uuid:
+                        exit loop
+                wait 1 tick
+                send "&aYou have denied the duel request from &2%arg-2%&a." to player
+                set {duelDenied::%player's uuid%} to true
+                stop
+        arg 1 is "forfeit":
+            {isDueling::%player's uuid%} is true:
+                {forfeiting::%player's uuid%} doesn't exist:
+                    set {forfeiting::%player's uuid%} to true
+                else:
+                    delete {forfeiting::%player's uuid%}
+                    set {_i} to {dueling::%player's uuid%} parsed as player
+                    send "&b&m-----------------------------------------------" to player and {_i}
+                    send "&l&aDuel Status:" to player and {_i}
+                    send "  &2%player% &ahas opted out of the forfeit." to player and {_i}
+                    send "&b&m-----------------------------------------------" to player and {_i}
+                    stop
+                set {_i} to {dueling::%player's uuid%} parsed as player
+                set {_v} to uuid of {_i}
+                {forfeiting::%{_v}%} does not exist:
+                    send "&b&m-----------------------------------------------" to player and {_i}
+                    send "&l&aDuel Status:" to player and {_i}
+                    send "  &aYou have requested a forfeit." to player
+                    send "  &2%player% &ahas requested a forfeit. If accepted, the duel will end." to {_i}
+                    send "  &aIf both parties decide to forfeit, the duel will end." to player
+                    json("%{_i}%", "                            &7[&8&lFORFEIT&r&7]||ttp:&bSelect this to &7forfeit &b%player%'s duel.||cmd:/duel forfeit||")
+                    send "&b&m-----------------------------------------------" to player and {_i}
+                else:
+                    send "&b&m-----------------------------------------------" to player and {_i}
+                    send "&l&aDuel Status:" to player and {_i}
+                    send "  &aBoth parties have decided to forfeit." to player and {_i}
+                    send "  &aThe duel has ended." to player and {_i}
+                    send "&b&m-----------------------------------------------" to player and {_i}
+                    clearDuelInfo(player)
+                    clearDuelInfo({_i})
+            else:
+                send "&cYou must be in a duel to use this command." to player
+                stop
+#        arg 1 is "ignore":
+#            arg 2 is not set:
+#                send "&cCould not find player."
+#                stop
+#            else:
+#                add uuid of arg 2 to {ignoreList::%player's uuid%}
+#                send "&aYou have ignored &2%arg-2%&a. Ignoring this player will block duel requests sent to you by them. To manage ignored users, use &2/ignorelist&a."
+            
+
+command /kills:
+    trigger:
+        send "%{totalkills::%player's uuid%}%" to player
+        send "%{totaldeaths::%player's uuid%}%" to player
+
+function duelMenu0(p: player, p2: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 5 named "Dueling %{_p2}%" to {_p}
+    wait 1 tick
+    guiWindow5({_p})
+    make gui slot 12 of {_p} with skull of {_p} named "&f&l&nDuel Sender:&r &f%{_p}%&r &7&o(You)"
+    make gui slot 14 of {_p} with skull of {_p2} named "&f&l&nDuel Recipient:&r &f%{_p2}%"
+    #make gui slot 20 of {_p} with iron sword named "&f&l&nGameplay Options..." with lore "&7Contains customizable options for the following:", "&b", "&7- Class Restrictions", "&7- Shop Restrictions", "&7- Ultimate Restrictions" and "&b" to execute function duelMenu2({_p}, {_p2})
+    make gui slot 20 of {_p} with iron chestplate named "&f&l&nClasses..." with lore "&7Click to edit class restrictions." to execute function duelMenu1({_p}, {_p2})
+    make gui slot 24 of {_p} with stone sword named "&f&l&nKill Requirements..." with lore "&7Click to edit the amount of kills required to win a duel." and "&7Your Set Kill-Requirement: %{duelKillReq::%{_u}%}%" to execute function duelMenu3({_p}, {_p2})
+    make gui slot 22 of {_p} with grass block named "&f&l&nMap Options..." with lore "&7The Duel's map is set to your map." and "&7Use '/options map' to change your map."
+    {canUlt::%{_u}%} is 0:
+        make gui slot 30 of {_p} with nether quartz named "&f&l&nToggle Ultimates:" with lore "&7Ultimates are currently &cdisabled&7." and "&7Click to &aenable &7ultimates." to execute function duelGPToggle({_p}, {_p2}, 0)
+    {canUlt::%{_u}%} is 1:
+        make gui slot 30 of {_p} with nether star named "&f&l&nToggle Ultimates:" with lore "&7Ultimates are currently &aenabled&7." and "&7Click to &cdisable &7ultimates." to execute function duelGPToggle({_p}, {_p2}, 0)
+    {canShop::%{_u}%} is 0:
+        make gui slot 32 of {_p} with gold nugget named "&f&l&nToggle Shop:" with lore "&7In-game shop is currently &cdisabled&7." and "&7Click to &aenable &7the in-game shop." to execute function duelGPToggle({_p}, {_p2}, 1)
+    {canShop::%{_u}%} is 1:
+        make gui slot 32 of {_p} with glowing gold ingot named "&f&l&nToggle Shop:" with lore "&7In-game shop is currently &aenabled&7." and "&7Click to &cdisable &7the in-game shop." to execute function duelGPToggle({_p}, {_p2}, 1)
+    #make gui slot 24 of {_p} with bookshelf named "&f&l&nPresets..." with lore "&7Contains customizable preset configurations for duels."
+    make gui slot 39 of {_p} with red stained clay named "&f&l&n< Close Menu" with lore "&7Closes this menu." to close
+    make gui slot 41 of {_p} with lime stained clay named "&f&l&n> Send Duel Invitation..." with lore "&7Send a duel invitation to %{_p2}%." to execute function duelSend({_p}, {_p2})
+function duelMenu1(p: player, p2: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 3 named "Gameplay Options | Duels" to {_p}
+    wait 1 tick
+    guiWindow3({_p})
+    make gui slot 22 of {_p} with barrier named "&c<< Back" with lore "&7Return to the previous menu." to execute function duelMenu0({_p}, {_p2})
+    {classToggle::0::%{_u}%} is 1:
+        make gui slot 11 of {_p} with glowing iron sword named "&f&l&nWarrior:" with lore "&7Click to &cdisable &7the ability to choose the Warrior class." to execute function classToggle({_p}, 0, {_p2})
+    {classToggle::0::%{_u}%} is 0:
+        make gui slot 11 of {_p} with iron sword named "&f&l&nWarrior:" with lore "&7Click to &aenable &7the ability to choose the Warrior class." to execute function classToggle({_p}, 0, {_p2})
+    {classToggle::2::%{_u}%} is 1:
+        make gui slot 12 of {_p} with glowing leather boots named "&f&l&nHermes:" with lore "&7Click to &cdisable &7the ability to choose the Hermes class." to execute function classToggle({_p}, 2, {_p2})
+    {classToggle::2::%{_u}%} is 0:
+        make gui slot 12 of {_p} with leather boots named "&f&l&nHermes:" with lore "&7Click to &aenable &7the ability to choose the Hermes class." to execute function classToggle({_p}, 2, {_p2})
+    color slot 12 of {_p}'s current inventory lime
+    {classToggle::1::%{_u}%} is 1:
+        make gui slot 13 of {_p} with glowing bow named "&f&l&nArcher:" with lore "&7Click to &cdisable &7the ability to choose the Archer class." to execute function classToggle({_p}, 1, {_p2})
+    {classToggle::1::%{_u}%} is 0:
+        make gui slot 13 of {_p} with bow named "&f&l&nArcher:" with lore "&7Click to &aenable &7the ability to choose the Archer class." to execute function classToggle({_p}, 1, {_p2})
+    {classToggle::3::%{_u}%} is 1:
+        make gui slot 14 of {_p} with glowing stone hoe named "&f&l&nReaper:" with lore "&7Click to &cdisable &7the ability to choose the Reaper class." to execute function classToggle({_p}, 3, {_p2})
+    {classToggle::3::%{_u}%} is 0:
+        make gui slot 14 of {_p} with stone hoe named "&f&l&nReaper:" with lore "&7Click to &aenable &7the ability to choose the Reaper class." to execute function classToggle({_p}, 3, {_p2})
+    {classToggle::4::%{_u}%} is 1:
+        make gui slot 15 of {_p} with glowing fishing rod named "&f&l&nAngler:" with lore "&7Click to &cdisable &7the ability to choose the Angler class." to execute function classToggle({_p}, 4, {_p2})
+    {classToggle::4::%{_u}%} is 0:
+        make gui slot 15 of {_p} with fishing rod named "&f&l&nAngler:" with lore "&7Click to &aenable &7the ability to choose the Angler class." to execute function classToggle({_p}, 4, {_p2})
+function duelMenu2(p: player, p2: player):
+    open virtual chest inventory with size 4 named "Gameplay Options | Duels" to {_p}
+    wait 1 tick
+    guiWindow4({_p})
+    make gui slot 12 of {_p} with skull of {_p} named "&f&l&nDuel Sender:&r &f%{_p}%&r &7&o(You)"
+    make gui slot 14 of {_p} with skull of {_p2} named "&f&l&nDuel Recipient:&r &f%{_p2}%"
+    make gui slot 20 of {_p} with iron chestplate named "&f&l&nClasses..." with lore "&7Click to edit class restrictions." to execute function duelMenu1({_p}, {_p2})
+    make gui slot 22 of {_p} with compass named "&f&l&nMore Options..." with lore "&7Contains customizable options for the following:", "&b", "&7- Toggle Shop", "&7- Toggle Ultimates" and "&7" to execute function duelMenu4({_p}, {_p2})
+    color slot 22 of {_p}'s current inventory lime
+    make gui slot 24 of {_p} with stone sword named "&f&l&nKill Requirements:" with lore "&7Click to edit the amount of kills required to win a duel." to execute function duelMenu3({_p}, {_p2})
+    make gui slot 31 of {_p} with barrier named "&c<< Back" with lore "&7Click to go back to the main duel menu." to execute function duelMenu0({_p}, {_p2})
+function duelMenu3(p: player, p2: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 4 named "Gameplay Options | Duels" to {_p}
+    wait 1 tick
+    guiWindow4({_p})
+    make gui slot 20 of {_p} with white stained glass pane named "&f&l&n3&r &fKills" to execute function setKillCount({_p}, {_p2}, 3)
+    make gui slot 21 of {_p} with yellow stained glass pane named "&f&l&n5&r &fKills" to execute function setKillCount({_p}, {_p2}, 5)
+    make gui slot 22 of {_p} with orange stained glass pane named "&f&l&n7&r &fKills" to execute function setKillCount({_p}, {_p2}, 7)
+    make gui slot 23 of {_p} with red stained glass pane named "&f&l&n10&r &fKills" to execute function setKillCount({_p}, {_p2}, 10)
+    make gui slot 24 of {_p} with writable book named "&f&l&nCustom&r &7&o(Min. 3, Max. 30)" to close then execute function setKillCountManual({_p}, {_p2})
+    make gui slot 13 of {_p} with book named "&fYour Set Kill-Requirement: &f&l&n%{duelKillReq::%{_u}%}%"
+    make gui slot 31 of {_p} with barrier named "&c<< Back" with lore "&7Click to go back to the main duel menu." to execute function duelMenu0({_p}, {_p2})
+function duelMenu4(p: player, p2: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 3 named "Gameplay Options | Duels" to {_p}
+    wait 1 tick
+    guiWindow3({_p})
+    {canUlt::%{_u}%} is 0:
+        make gui slot 12 of {_p} with nether quartz named "&f&l&nToggle Ultimates:" with lore "&7Ultimates are currently &cdisabled&7." and "&7Click to &aenable &7ultimates." to execute function duelGPToggle({_p}, {_p2}, 0)
+    {canUlt::%{_u}%} is 1:
+        make gui slot 12 of {_p} with nether star named "&f&l&nToggle Ultimates:" with lore "&7Ultimates are currently &aenabled&7." and "&7Click to &cdisable &7ultimates." to execute function duelGPToggle({_p}, {_p2}, 0)
+    {canShop::%{_u}%} is 0:
+        make gui slot 14 of {_p} with gold nugget named "&f&l&nToggle Shop:" with lore "&7In-game shop is currently &cdisabled&7." and "&7Click to &aenable &7the in-game shop." to execute function duelGPToggle({_p}, {_p2}, 1)
+    {canShop::%{_u}%} is 1:
+        make gui slot 14 of {_p} with glowing gold ingot named "&f&l&nToggle Shop:" with lore "&7In-game shop is currently &aenabled&7." and "&7Click to &cdisable &7the in-game shop." to execute function duelGPToggle({_p}, {_p2}, 1)
+    make gui slot 22 of {_p} with barrier named "&c<< Back" with lore "&7Click to go back to the main duel menu." to execute function duelMenu2({_p}, {_p2})
+
+function duelGPToggle(p: player, p2: player, i: integer):
+    set {_u} to uuid of {_p}
+    {_i} is 0:
+        {canUlt::%{_u}%} is 0:
+            set {canUlt::%{_u}%} to 1
+            duelMenu0({_p}, {_p2})
+            play sound "note.pling" to {_p}
+            stop
+        {canUlt::%{_u}%} is 1:
+            set {canUlt::%{_u}%} to 0
+            duelMenu0({_p}, {_p2})
+            play sound "note.pling" to {_p}
+            stop
+    {_i} is 1:
+        {canShop::%{_u}%} is 1:
+            set {canShop::%{_u}%} to 0
+            duelMenu0({_p}, {_p2})
+            play sound "note.pling" to {_p}
+            stop
+        {canShop::%{_u}%} is 0:
+            set {canShop::%{_u}%} to 1
+            duelMenu0({_p}, {_p2})
+            play sound "note.pling" to {_p}
+            stop
+
+function setKillCount(p: player, p2: player, i: integer):
+    set {_u} to uuid of {_p}
+    play sound "note.pling" to {_p}
+    set {duelKillReq::%{_u}%} to {_i}
+    send "&aSet kill-requirement to &2%{duelKillReq::%{_u}%}%&a!" to {_p}
+    duelMenu3({_p}, {_p2})
+function setKillCountManual(p: player, p2: player):
+    set {_u} to uuid of {_p}
+    {killChatWait::%{_u}%} is true:
+        send "&cPlease wait a bit before using this feature again." to  {_p}
+        stop
+    send "&aPlease enter your desired kill-requirement into the in-game chat. You have 60 seconds to do so. &7(Min: 3, Max: 30)" to {_p}
+    set {killChatWait::%{_u}%} to true
+    wait 60 seconds
+    delete {killChatWait::%{_u}%}
+    send "&aYou are now able to enter in another manual kill-requirement." to {_p}
+
+function duelMapToggle(p: player, i: integer, a: player):
+    set {_u} to uuid of {_p}
+    set {mapsel::%{_u}%} to {_i}
+    play sound "note.pling" to {_p}
+    wait 1 tick
+    send "%{mapsel::%{_u}%}%" to {_p}
+    duelMenu3({_p}, {_a})
+
+function classToggle(p: player, i: integer, p2: player):
+    set {_u} to uuid of {_p}
+    {classToggle::%{_i}%::%{_u}%} is 0:
+        play sound "note.pling" to {_p}
+        set {classToggle::%{_i}%::%{_u}%} to 1
+        add -1 to {classLimit::%{_u}%}
+        {classLimit::%{_u}%} <= -1:
+            set {classLimit::%{_u}%} to 0
+        duelMenu1({_p}, {_p2})
+        stop
+    else:
+        {classLimit::%{_u}%} >= 4:
+            send "&cYou cannot disable all classes!" to {_p}
+            play sound "note.bass" to {_p}
+            stop
+        play sound "note.pling" to {_p}
+        set {classToggle::%{_i}%::%{_u}%} to 0
+        {classToggle::0::%{_u}%} is 0:
+            {classToggle::1::%{_u}%} is 0:
+                {classToggle::2::%{_u}%} is 0:
+                    {classToggle::3::%{_u}%} is 0:
+                        {classToggle::4::%{_u}%} is 0:
+                            set {_int} to 0
+                            loop 5 times:
+                                set {classToggle::%{_int}%::%{_u}%} to 1
+                                add 1 to {_int}
+                            add -1 to {classLimit::%{_u}%}
+        add 1 to {classLimit::%{_u}%}
+        duelMenu1({_p}, {_p2})
+        stop
+
+function duelSend(p: player, a: player):
+    close {_p}'s inventory
+    set {_u} to uuid of {_p}
+    set {_ua} to uuid of {_a}
+    add {_u} to {invFromList::%{_ua}%::*}
+    #send "&2%{_p}% &ahas challenged you to a duel." to {duelInv::%{_u}%}
+    #send "&b╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯" to arg 1
+    #send "&b" to arg 1
+    send "&b" to {_a}
+    send "&2%{_p}% &ahas challenged you to a duel." to {_a}
+    json("%{_a}%", "              &a[&2&lACCEPT&r&a]||ttp:&bSelect this to &aaccept &b%{_p}%'s duel.||cmd:/duel accept %{_p}%|| &c[&4&lDENY&r&c]||ttp:&bSelect this to &cdecline &b%{_p}%'s duel.||cmd:/duel deny %{_p}%||")
+    send "&b" to {_a}
+    #send "&b" to arg 1
+    #send "&b╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮╰╯╭╮" to arg 1
+    send "&aYou have sent a duel request to &2%{duelInv::%{_u}%}%&a. They have 15 seconds to accept." to {_p}
+    wait 15 seconds
+    {isDueling::%{_u}%} is not true:
+        {duelDenied::%{_ua}%} exists:
+            send "&aThe duel request to &2%{duelInv::%{_u}%}% &ahas expired." to {_p}
+            delete {duelDenied::%{_ua}%}
+        else:
+            send "&aThe duel request to &2%{_a}% &ahas expired." to {_p}
+            send "&aThe duel request from &2%{_p}% &ahas expired." to {_a}
+            delete {duelInv::%{_u}%}
+            loop {invFromList::%{_ua}%::*}:
+                {invFromList::%{_ua}%::*} contains {_u}:
+                    remove {_u} from {invFromList::%{_ua}%::*}
+                {invFromList::%{_ua}%::*} does not contain {_u}:
+                    exit loop
+            wait 1 tick
+
+function duelStart(p: player, a: player):
+    set {_u} to uuid of {_p}
+    set {_ua} to uuid of {_a}
+    set {isDueling::%{_ua}%} to true
+    set {isDueling::%{_u}%} to true
+    set {dueling::%{_u}%} to {_ua}
+    set {dueling::%{_ua}%} to {_u}
+    set {_i} to 0
+    set {map::%{_ua}%} to {map::%{_u}%}
+    set {duelKillReq::%{_ua}%} to {duelKillReq::%{_u}%}
+    set {duelKillReq::%{_u}%} to {duelKillReq::%{_ua}%}
+    {canUlt::%{_u}%} is 0:
+        set {disableUlt::%{_u}%} to true
+        set {disableUlt::%{_ua}%} to true
+    {canShop::%{_u}%} is 0:
+        set {disableShop::%{_u}%} to true
+        set {disableShop::%{_ua}%} to true                      
+    scoreboardUpdate({_p})
+    scoreboardUpdate({_a})
+    loop 5 times:
+        set {classToggle::%{_i}%::%{_ua}%} to {classToggle::%{_i}%::%{_u}%}
+        wait 1 tick
+        set {_i} to {_i} + 1
+    remove {_u} from {invFromList::%{_ua}%::*}
+    send "&bA duel against &a%{_a}% &bhas started. First to &a%{duelKillReq::%{_ua}%}% &bkills wins!" to {_p}
+    send "&bA duel against &a%{_p}% &bhas started. First to &a%{duelKillReq::%{_ua}%}% &bkills wins!" to {_a}
+command /duelcheck:
+    trigger:
+        send "%{isDueling::%player's uuid%}%" to player
+
+on death:
+    wait 1 tick
+    attacker is not online:
+        stop
+    attacker is a player
+    victim is a player
+    {suicide::%victim's uuid%} is true:
+        stop
+    {isDueling::%attacker's uuid%} is true
+    {isDueling::%victim's uuid%} is true
+    {dueling::%victim's uuid%} contains attacker's uuid
+    {dueling::%attacker's uuid%} contains victim's uuid
+    if {duelCount::%attacker's uuid%} is not set:
+        set {duelCount::%attacker's uuid%} to 0
+    if {duelCount::%victim's uuid%} is not set:
+        set {duelCount::%victim's uuid%} to 0
+    add 1 to {duelCount::%attacker's uuid%}
+    wait 1 tick
+    {duelCount::%attacker's uuid%} >= {duelKillReq::%attacker's uuid%}:
+        set {_i1} to {duelKillReq::%attacker's uuid%} * 2
+        set {_i2} to {duelKillReq::%attacker's uuid%} / 2
+        set {_i2} to rounded {_i2}
+        send "&b&m-----------------------------------------------" to victim and attacker
+        send "&l&aDuel Status: &a(First to &2%{duelCount::%attacker's uuid%}%&a kills)" to victim and attacker
+        send "  &2%attacker%&a wins!" to victim and attacker
+        send "  &aYou have received &2%{_i2}% &asouls for dueling with &2%attacker%&a." to victim
+        send "  &aYou have received &2%{_i1}% &asouls for defeating &2%victim%&a in a duel." to attacker
+        send "&b&m-----------------------------------------------" to victim and attacker
+        wait 1 tick
+        add {_i1} to {souls::%attacker's uuid%}
+        add {_i2} to {souls::%victim's uuid%}
+        scoreboardUpdate(victim)
+        scoreboardUpdate(attacker)
+        clearDuelInfo(victim)
+        clearDuelInfo(attacker)
+    else:
+        send "&b&m-----------------------------------------------" to victim and attacker
+        send "&l&aDuel Status: &a(First to &2%{duelKillReq::%attacker's uuid%}%&a kills)" to victim and attacker
+        send "  &2%attacker%&a: &l%{duelCount::%attacker's uuid%}%" to victim and attacker
+        send "  &2%victim%&a: &l%{duelCount::%victim's uuid%}%" to victim and attacker
+        send "&b&m-----------------------------------------------" to victim and attacker
+
+
+
+command /invlist [<player>]:
+    permission: rbp.debug
+    trigger:
+        arg 1 is set:
+            send "%{invFromList::%arg-1's uuid%::*}%"
+
+on quit:
+    {isDueling::%player's uuid%} exists
+    {dueling::%player's uuid%} exists
+    set {_i} to {dueling::%player's uuid%} parsed as a player
+    send "&b&m-----------------------------------------------" to {_i}
+    send "&l&aDuel Status:" to {_i}
+    send "&2%player%&a has left the game. If &2%player% &adoes not log back in within 60 seconds, the duel will be forfeited." to {_i}
+    send "&aIf &2%player% &adoes not log back in within that time frame, you will receive 30 souls as compensation." to {_i}
+    send "&b&m-----------------------------------------------" to {_i}
+    wait 1 tick
+    loop 18 times:
+        event-player is online:
+            exit loop
+        else:
+            {forfeitTime::%player's uuid%} >= 60:
+                send "&b&m-----------------------------------------------" to {_i}
+                send "&l&aDuel Status:" to {_i}
+                send "&2%player%&a has been disconnected for 60 seconds." to {_i}
+                send "&aYou have received 30 souls as compensation. We apologize for the inconvenience." to {_i}
+                send "&b&m-----------------------------------------------" to {_i}
+                add 30 to {souls::%{_i}%}
+                scoreboardUpdate({_i})
+                clearDuelInfo(event-player)
+                clearDuelInfo({_i})
+            add 5 to {forfeitTime::%player's uuid%}
+            wait 5 seconds
+on join:
+    {isDueling::%player's uuid%} is true
+    set {_i} to {dueling::%player's uuid%} parsed as a player
+    wait 5 ticks
+    {forfeitTime::%player's uuid%} >= 60:
+        send "&b&m-----------------------------------------------" to player and {_i}
+        send "&l&aDuel Status:" to player and {_i}
+        send "&2%player%&a has reconnected. The duel shall now resume." to {_i}
+        send "&aYou have reconnected. The duel with &2%{_i}% &ashall now resume." to player
+        send "&aYou've been disconnected for over 60 seconds. The duel with &2%{_i}% &ahas now been forfeited." to player
+        send "&b" to {_i}
+        send "&b&m-----------------------------------------------" to player
+    else:
+        send "&b&m-----------------------------------------------" to player and {_i}
+        send "&l&aDuel Status:" to player and {_i}
+        send "&aYou have reconnected. The duel with &2%{_i}% &ashall now resume." to player
+        send "&2%player% &ahas reconnected. The duel shall now resume." to {_i}
+        send "&aYou've been disconnected for at least %{forfeitTime::%player's uuid%}%&a/60 seconds. If you disconnect again, this time will start where it left off. This time will be deleted once the duel is finished." to player
+        send "&b&m-----------------------------------------------" to player and {_i}
+
+command /clearduelinfo:
+    trigger:
+        clearDuelInfo(player)
+function clearDuelInfo(p: player):
+    set {_u} to uuid of {_p}
+    set {_i} to {dueling::%{_u}%} parsed as a player
+    wait 1 tick
+    delete {duelCount::%{_i}%}
+    delete {duelCount::%{_u}%}
+    delete {dueling::%{_i}%}
+    delete {dueling::%{_u}%}
+    delete {isDueling::%{_u}%}
+    delete {isDueling::%{_i}%}
+    delete {forfeitTime::%{_i}%}
+    delete {forfeitTime::%{_u}%}
+    delete {forfeiting::%{_u}%}
+    delete {forfeiting::%{_i}%}
+    delete {disableShop::%{_u}%}
+    delete {disableUlt::%{_u}%}

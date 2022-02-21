@@ -1,0 +1,19 @@
+# For things that were never meant to be in the shop, but were still created anyways.
+
+# This was used when a player used /shop while not in an arena. This would allow them to play music at spawn. I don't remember if this is still accessible.
+function shopMenu5(p: player):
+    open virtual chest inventory with size 4 named "Lobby | Shop" to {_p}
+    wait 1 tick
+    guiWindow4({_p})
+    wait 1 tick
+    make gui slot 10 of {_p} with disc wait named "&eMusic &eDisc" with lore "&7Price: 30 Souls"
+    make gui slot 11 of {_p} with disc mellohi named "&eMusic &eDisc" with lore "&7Price: 30 Souls"
+    make gui slot 12 of {_p} with disc blocks named "&eMusic &eDisc" with lore "&7Price: 30 Souls"
+    make gui slot 13 of {_p} with disc strad named "&eMusic &eDisc" with lore "&7Price: 30 Souls"
+    make gui slot 14 of {_p} with disc ward named "&eMusic &eDisc" with lore "&7Price: 30 Souls"
+    make gui slot 15 of {_p} with disc cat named "&eMusic &eDisc" with lore "&7Price: 30 Souls"
+    make gui slot 16 of {_p} with disc chirp named "&eMusic &eDisc" with lore "&7Price: 30 Souls"
+    make gui slot 19 of {_p} with disc stal named "&eMusic &eDisc" with lore "&7Price: 30 Souls"
+    make gui slot 20 of {_p} with disc mall named "&eMusic &eDisc" with lore "&7Price: 30 Souls"
+    make gui slot 21 of {_p} with disc 11 named "&eMusic &eDisc" with lore "&7Price: 1,000 Souls"
+    make gui slot 22 of {_p} with disc 13 named "&eMusic &eDisc" with lore "&7Price: 1,000 Souls"#

@@ -1,0 +1,434 @@
+# In-game shop, uses Souls as currency.
+
+# Unfinished free item pass system
+on connect:
+    {freeItemPass::%player's uuid%} is not set:
+        set {freeItemPass::%player's uuid%} to 0
+
+# The shop
+command /shop [<text>]:
+    trigger:
+        {disableShop::%player's uuid%} is true:
+            send "&cThe duel owner has disabled the shop." to player
+            stop
+        if arg 1 is not set:
+            shopMenu0(player)
+        if arg 1 is set:
+            if arg 1 is not "buffs", "blocks" or "weapons":
+                shopMenu0(player)
+            if arg 1 is "buffs":
+                shopMenu1(player)
+            if arg 1 is "blocks":
+                shopMenu2(player)
+            if arg 1 is "weapons":
+                shopMenu3(player)
+            if arg 1 is "debug":
+                shopMenu3(player)
+
+# Main shop menu
+function shopMenu0(p: player):
+    set {_u} to uuid of {_p}
+    {hasUsed::%{_u}%} is not set:
+        shopMenu5({_p})
+        stop
+    open virtual chest inventory with size 3 named "Shop" to {_p}
+    wait 1 tick
+    guiWindow3({_p})
+    set {_bg::*} to 10, 12, 13, 14, and 16
+    make gui slot {_bg::*} of {_p} with black glass pane named "&b"
+    #make gui slot 11 of {_p} with ender eye named "&fBuffs" with lore "&7Click here to purchase buffs." to run function shopMenu1({_p})
+    {map::%{_u}%} is not 2:
+        make gui slot 11 of {_p} with red stained clay named "&fEffect Blocks" with lore "&7Click here to purchase effect blocks." to run function shopMenu2({_p})
+    else:
+        make gui slot 11 of {_p} with barrier named "&fEffect Blocks (Disabled)" with lore "&7Click here to purchase effect blocks.", "&b" and "&7Effect blocks are disabled for this map."
+    make gui slot 15 of {_p} with stone sword named "&fMisc. Weapons" with lore "&7Click here to purchase misc. weapons." to run function shopMenu3({_p})
+    {_p} has permission "rbp.debug":
+        make gui slot 13 of {_p} with yellow stained clay named "&fDebug" with lore "&7Debug options and items." to run function shopMenu4({_p})
+    #{discount::%{_u}%} is not set:
+        #make gui slot 22 of {_p} with head of {_p} named "&f%{_p}%" with lore "&7Souls: %{souls::%{_u}%}%", "&7Discount: &cNone" and "&7Free Item Pass: %{hasFreePass::%{_u}%}%"
+    #else:
+        #make gui slot 22 of {_p} with head of {_p} named "&f%{_p}%" with lore "&7Souls: %{souls::%{_u}%}%", "&7Discount: &a%{discount::%{_u}%}%&7%%" and "&7Free Item Pass: %{hasFreePass::%{_u}%}%"
+    make gui slot 22 of {_p} with head of {_p} named "&f%{_p}%" with lore "&7Souls: %{souls::%{_u}%}%"
+
+# Unused buffs shop
+function shopMenu1(p: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 3 named "Buffs | Shop" to {_p}
+    wait 1 tick
+    guiWindow3({_p})
+    wait 1 tick
+    set {_bg::*} to 10, 12, 14, and 16
+    make gui slot {_bg::*} of {_p} with black glass pane named "&b"
+    {ult::%{_u}%} == 0:
+        make gui slot 11 of {_p} with paper named "&c&nThere's nothing here, yet... :( (0)" with lore "&7Check back later!"
+    {ult::%{_u}%} == 1:
+        make gui slot 11 of {_p} with nether star named "&fSulphur Shot (1)" with lore "&7Check back later!"
+        make gui slot 13 of {_p} with nether star named "&fSuper Shot (1)" with lore "&7Check back later!"
+        make gui slot 15 of {_p} with nether star named "&fSpeed Shot (1)" with lore "&7Check back later!"
+    {ult::%{_u}%} == 2:
+        make gui slot 11 of {_p} with paper named "&c&nHertz Essence (2)" with lore "&7Check back later!"
+    {ult::%{_u}%} == 3:
+        make gui slot 11 of {_p} with paper named "&c&nThere's nothing here, yet... :( (3)" with lore "&7Check back later!"
+    make gui slot 22 of {_p} with barrier named "&c<< Back" with lore "&7Click to go back." to run function shopMenu0({_p})
+
+# Effect blocks shop (exclusive to Oasis and Grimworld maps)
+function shopMenu2(p: player):
+    open virtual chest inventory with size 4 named "Effect Blocks | Shop" to {_p}
+    guiWindow4({_p})
+    wait 1 tick
+    make gui slot 10 of {_p} with prismarine bricks named "&fLaunch Block" with lore "&7Effects: Launch x3, Push x2", "&7Decay: 3 seconds", "&7Price: 1 Soul", "&b" and "&7It's best recommended to look up while using this."
+    make gui slot 11 of {_p} with lapis lazuli block named "&fTeleportation Block" with lore "&7Effects: Random Teleport x1", "&7Decay: 3 seconds", "&7Price: 3 Souls", "&b" and "&7Randomly teleports you to a different spawn location."
+    make gui slot 31 of {_p} with barrier named "&c<< Back" with lore "&7Click to go back." to run function shopMenu0({_p})
+
+# Miscellaneous weapons shop
+function shopMenu3(p: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 4 named "Misc. Weapons | Shop" to {_p}
+    wait 1 tick
+    guiWindow4({_p})
+    wait 1 tick
+    {ult::%{_u}%} is not 1:
+        make gui slot 10 of {_p} with bow named "&a&fBattle-Worn Bow" with lore "&7Durability: 4", "&7Enchantments: Infinity, Weakening III", "&7Price: 12 Souls", "&b" and "&7A bow that's past its glory days."
+        make gui slot 11 of {_p} with glowing bow named "&a&fThe Puncher" with lore "&7Durability: 8", "&7Enchantments: Infinity, Punch II, Weakening III", "&7Price: 25 Souls", "&b" and "&7An ancient bow charged by a magical rune."
+        make gui slot 12 of {_p} with glowing bone named "&a&b[EXPUNGED] Wacker" with lore "&7Damage: 5HP", "&7Durability: Infinity", "&7Buffs: Knockback II" and "&7Price: 10 Souls"
+        {map::%{_u}%} is 2:
+            make gui slot 13 of {_p} with iron pickaxe named "&a&fMysterious Pickaxe" with lore "&7Damage: 4HP", "&7Durability: Infinity", "&7Price: 10 Souls" and "&7Manipulates grates to allow access to inaccessible places."
+    else:
+        make gui slot 10 of {_p} with glowing bone named "&a&b[EXPUNGED] Wacker" with lore "&7Damage: 5HP", "&7Durability: Infinity", "&7Buffs: Knockback II" and "&7Price: 20 Souls"
+        {map::%{_u}%} is 2:
+            make gui slot 11 of {_p} with iron pickaxe named "&a&fMysterious Pickaxe" with lore "&7Manipulates grates to allow access to inaccessable places.", "&7Damage: 0HP" and "&7Price: 10 Souls"
+    # Naked mode RNG unlocker
+    chance of 0.02%:
+        {nakedopt::%{_u}%} is not set
+        make gui slot 25 of {_p} with glowing diamond helmet named "&aRedeem Naked Mode &f(/options)" with lore "&7Click this to unlock the Naked Mode option in the Options menu." and "&7Price: Free" to run function shopUnlock0({_p})        
+    make gui slot 31 of {_p} with barrier named "&c<< Back" with lore "&7Click to go back." to run function shopMenu0({_p})
+
+# Debug shop GUI. I almost never used this despite it having useful features.
+function shopMenu4(p: player):
+    open virtual chest inventory with size 4 named "Debug | Shop" to {_p}
+    wait 1 tick
+    guiWindow4({_p})
+    wait 1 tick
+    make gui slot 10 of {_p} with glowing bone named "&b[EXPUNGED] Wacker" with lore "&7Damage: 5HP", "&7Durability: Infinity", "&7Buffs: Knockback II" and "&7Price: 10 Souls"
+    # Start of unused features that were never implemented
+    make gui slot 11 of {_p} with light blue stained clay named "&fEffect Exclusion Adder Block" with lore "&7Removes the ability to place an effect block where this is placed." and "&7Does not cost any souls." to run function item_EA({_p})
+    make gui slot 12 of {_p} with red stained clay named "&fEffect Exclusion Remover Block" with lore "&7Allows the ability to place an effect block where this is placed." and "&7Does not cost any souls." to run function item_ER({_p})
+    # End of unused features that were never implemented
+    make gui slot 19 of {_p} with paper named "&fReload Shop" with lore "&7Reloads the shop. Does not cost any souls." to run {_p} command "/sk reload shop"
+    make gui slot 31 of {_p} with barrier named "&c<< Back" with lore "&7Click to go back." to run function shopMenu0({_p})
+
+# Naked mode unlock function
+function shopUnlock0(p: player):
+    set {_u} to uuid of {_p}
+    close {_p}'s inventory
+    set {nakedopt::%{_u}%} to 0
+    play sound "note.pling" to {_p}
+    send "&aNaked Mode has been unlocked! Use &b/options &ato toggle it on and off. &7(Default: off)" to {_p}
+
+# Direct-buy command, for those who are too lazy to shop
+command /db [<text>]:
+    aliases: directbuy, dirbuy
+    trigger:
+        if arg 1 is not set:
+            send "&cInsufficient argument(s)." to player
+            stop
+        {hasused::%player's uuid%} is not set:
+            send "&cNice try, Adrian!" to player
+            stop
+        arg 1 = "l" or "lb":
+            {map::%player's uuid%} == 2:
+                send "&cYou cannot buy this while in this arena."
+                stop
+            item_LB(player)
+        arg 1 = "t" or "tb":
+            {map::%player's uuid%} == 2:
+                send "&cYou cannot buy this while in this arena."
+                stop
+            item_TB(player)
+        arg 1 = "m" or "mw":
+            item_MW(player)
+        arg 1 = "tp" or "p":
+            item_TP(player)
+        arg 1 = "b" or "bb":
+            item_BB(player)
+        arg 1 = "p" or "mp":
+            {map::%player's uuid%} != 2:
+                send "&cYou cannot buy this while in this arena."
+                stop
+            item_MP(player)
+
+# GUI click events
+on inventory click:
+    name of player's current inventory contains "Shop"
+    name of clicked item contains "&a&fLaunch Block":
+        item_LB(player)
+    name of clicked item contains "&a&fTeleportation Block":
+        item_TB(player)
+    name of clicked item contains "&a&b[EXPUNGED] Wacker":
+        item_MW(player)
+    name of clicked item contains "&a&fBattle-Worn Bow":
+        item_BB(player)
+    name of clicked item contains "&a&fThe Puncher":
+        item_TP(player)
+    name of clicked item contains "&a&fMysterious Pickaxe":
+        item_MP(player)
+    name of clicked item contains "&a&eDisc":
+        if {souls::%player's uuid%} > 29:
+            if clicked item is disc 11 or disc 13:
+                if {souls::%player's uuid%} > 999:
+                    add -1000 to {souls::%player's uuid%}
+                    give 1 of clicked item named "&bMusic Disc" to player
+                    scoreboardUpdate(player)
+                else:
+                    send "&cYou don't have enough souls." to player
+                    close player's inventory
+            else:
+                add -30 to {souls::%player's uuid%}
+                give 1 of clicked item named "&bMusic Disc" to player
+                scoreboardUpdate(player)
+        else:
+            send "&cYou don't have enough souls." to player
+            close player's inventory
+
+# Currency removal function
+function shopCharge(p: player, i: integer):
+    set {_u} to uuid of {_p}
+    {freeItemPass::%{_u}%} is true:
+        set {canAfford::%{_u}%} to true
+        play sound "note.pling" to {_p}
+        stop
+    {debug::infinicost::%{_u}%} is true:
+        set {canAfford::%{_u}%} to true
+        play sound "note.pling" to {_p}
+        stop
+    if {souls::%{_u}%} >= {_i}:
+        {discount::%{_u}%} exists:
+            set {_d} to {_i} / 100
+            set {_d} to rounded {_d}
+            set {_e} to 100 - {discount::%{_u}%}
+        else:
+            set {_c} to {_i} * -1
+            add {_c} to {souls::%{_u}%}
+        scoreboardUpdate({_p})
+        set {canAfford::%{_u}%} to true
+    else:
+        send "&cYou don't have enough souls." to {_p}
+        close {_p}'s inventory
+        stop
+
+# Manual spawn-setter for maps. Map IDs are hard-coded.
+command /setmpspawn [<number>]:
+    permission: rbp.debug
+    trigger:
+        arg 1 is not set:
+            stop
+        else:
+            set {mpspawn::%arg-1%} to player's location
+
+# Functions galore, oh my
+function item_LB(p: player):
+    set {_u} to uuid of {_p}
+    shopCharge({_p}, 1)
+    wait 1 tick
+    {canAfford::%{_u}%} is true:
+        give 1 of glowing prismarine bricks named "&fLaunch Block" with lore "&7Effects: Launch x3, Push x2" and "&7Decay: 3 seconds" to {_p}
+function item_TB(p: player):
+    set {_u} to uuid of {_p}
+    shopCharge({_p}, 3)
+    wait 1 tick
+    {canAfford::%{_u}%} is true:
+        give 1 of glowing lapis lazuli block named "&fTeleportation Block" with lore "&7Effects: Random Teleport x1" and "&7Decay: 3 seconds" to {_p}
+function item_MW(p: player):
+    set {_u} to uuid of {_p}
+    shopCharge({_p}, 10)
+    wait 1 tick
+    {canAfford::%{_u}%} is true:
+        give 1 of glowing bone of sharpness 5 and knockback 2 named "&b[EXPUNGED] Wacker" with lore "&7It's a [EXPUNGED] Wacker." to {_p}
+function item_BB(p: player):
+    set {_u} to uuid of {_p}
+    shopCharge({_p}, 12)
+    wait 1 tick
+    {canAfford::%{_u}%} is true:
+        set {_a} to bow of infinity 1 with damage 381 named "&fBattle-Worn Bow" with lore "&7Weakening III", "&b" and "&7""A bow that's past its glory days."""
+        give {_a} to {_p}
+        set {_i} to 35
+        loop 35 times:
+            slot {_i} of {_p} is air:
+                set slot {_i} of {_p} to arrow
+                exit loop
+            else if slot {_i} of {_p} is arrow:
+                exit loop
+            else:
+                add -1 to {_i}
+function item_TP(p: player):
+    set {_u} to uuid of {_p}
+    shopCharge({_p}, 25)
+    wait 1 tick
+    {canAfford::%{_u}%} is true:
+        set {_a} to glowing bow of infinity 1 and punch 2 with damage 377 named "&fThe Puncher" with lore "&7Weakening III", "&b" and "&7""An ancient bow, charged by a magical rune."""
+        give {_a} to {_p}
+        set {_i} to 35
+        delete {canAfford::%{_u}%}
+        loop 35 times:
+            slot {_i} of {_p} is air:
+                set slot {_i} of {_p} to arrow
+                exit loop
+            else if slot {_i} of {_p} is arrow:
+                exit loop
+            else:
+                add -1 to {_i}
+function item_MP(p: player):
+    set {_u} to uuid of {_p}
+    shopCharge({_p}, 10)
+    wait 1 tick
+    {canAfford::%{_u}%} is true:
+        give 1 of iron pickaxe named "&fMysterious Pickaxe" with lore "&7Manipulates iron bars to allow access to inaccessable places." to {_p}
+        delete {canAfford::%{_u}%}
+function item_EA(p: player):
+    set {_u} to uuid of {_p}
+    wait 1 tick
+    give 1 of light blue stained clay named "&fEffect Exclusion Adder Block" with lore "&7Removes the ability to place an effect block where this is placed." and "&7Does not cost any souls." to {_p}
+function item_ER(p: player):
+    set {_u} to uuid of {_p}
+    wait 1 tick
+    give 1 of red stained clay named "&fEffect Exclusion Remover Block" with lore "&7Allows the ability to place an effect block where this is placed." and "&7Does not cost any souls." to {_p}
+
+# End of functions
+# Start of special mechanics
+
+on left click on iron bars:
+    {map::%player's uuid%} is 2
+    name of player's tool contains "&fMysterious Pickaxe"
+    if {cltime::%player's uuid%} exists:
+        set {_t} to difference between {cltime::%player's uuid%} and now
+        send "&cYou must wait &7a little bit &cbefore using this."
+        stop
+    else:
+        teleport player to {mpspawn::0}
+
+on place of a prismarine bricks:
+    name of player's tool contains "&fLaunch Block"
+    loop all blocks in radius 1 of event-block:
+        loop-block is water:
+            cancel event
+            play sound "note.bass" to player
+            send "&cEffect blocks are not allowed to be placed here."
+            stop
+    loop blocks in radius 1 of event-block:
+        if loop-block is iron trapdoor:
+            cancel event
+            stop
+        if loop-block is bed:
+            cancel event
+            stop
+    block above event-block is air or water:
+        set block above event-block to heavy weighted pressure plate
+        set {launch::%block above event-block%} to true
+        set {event::%event-block%} to true
+        loop blocks in radius 1 of block above event-block:
+            if loop-block is iron trapdoor:
+                cancel event
+                stop
+            if loop-block is bed:
+                cancel event
+                stop
+        wait 3 seconds
+        {event::%event-block%} is true:
+            set block above event-block to air
+            set event-block to air
+            delete {launch::%block above event-block%}
+            delete {event::%event-block%}
+    else:
+        cancel event
+on pressure plate:
+    {tp::%event-block%} is true:
+        wait 1 tick
+        set event-block to air
+        set block below event-block to air
+        teleporttoMap(player)
+        wait 1 tick
+        play sound "mob.endermen.portal" to player
+        delete {tp::%event-block%}
+    {launch::%event-block%} is true:
+        push player forwards at speed 3
+        push player upwards at speed 1 
+        play sound "mob.wither.shoot" to player
+        set {dc::%player's uuid%} to true
+on drop:
+    event-item is a heavy weighted pressure plate
+    cancel event
+
+on place of a lapis lazuli block:
+    name of player's tool contains "&fTeleportation Block"
+    loop all blocks in radius 1 of event-block:
+        loop-block is water:
+            cancel event
+            play sound "note.bass" to player
+            send "&cEffect blocks are not allowed to be placed here."
+            stop
+    loop blocks in radius 1 of event-block:
+        if loop-block is iron trapdoor:
+            cancel event
+            stop
+        if loop-block is bed:
+            cancel event
+            stop
+    block above event-block is air or water:
+        set block above event-block to heavy weighted pressure plate
+        set {tp::%block above event-block%} to true
+        set {event::%event-block%} to true
+        loop blocks in radius 1 of block above event-block:
+            if loop-block is iron trapdoor:
+                cancel event
+                stop
+            if loop-block is bed:
+                cancel event
+                stop
+        wait 3 seconds
+        {event::%event-block%} is true:
+            set block above event-block to air
+            set event-block to air
+            delete {tp::%block above event-block%}
+            delete {event::%event-block%}
+    else:
+        cancel event
+
+on place of light blue stained clay:
+    name of player's tool contains "&fEffect Exclusion Adder Block"
+    add block to {effectExclusionZone::*}
+    cancel event
+    play sound "note.pling" to player
+on place of red stained clay:
+    name of player's tool contains "&fEffect Exclusion Remover Block"
+    remove block from {effectExclusionZone::*}
+    cancel event
+    play sound "note.pling" to player
+
+on damage:
+    damage cause is fall
+    {dc::%victim's uuid%} is true:
+        cancel event
+        delete {dc::%victim's uuid%}
+    #tool of attacker contains "&fMysterious Pickaxe":
+    #    cancel event
+# End of special mechanics
+
+# Soul debug commands
+command /soulsreset:
+    trigger:
+        delete {souls::%player's uuid%}
+        set {souls::%player's uuid%} to 0
+        set action bar of player to "&cSouls have been deleted."
+command /addsouls [<offlineplayer>] [<number>]:
+    permission: rbp.souls
+    trigger:
+        add arg 2 to {souls::%arg-1's uuid%}
+        scoreboardUpdate(arg-1)
+        if arg 1 is not online:
+            send "&c%arg-1% is not online, but the souls were added anyway." to player
+# Naked mode debug commands
+command /delnakedmode:
+    permission: rbp.debug
+    trigger:
+        delete {nakedopt::%player's uuid%}
+        send "&aOK"

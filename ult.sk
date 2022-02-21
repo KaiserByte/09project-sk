@@ -1,0 +1,173 @@
+# "Ultimate" handling system.
+on join:
+    {ult::icon::%player's uuid%} is not set:
+        set {ult::icon::%player's uuid%} to nether star
+# Custom "Ultimate" inventory icon. Does not work because Skript parsing is broken. It would work if I made bad "code" for it that consisted of "if arg 1 is item X set var to item X" for 300 lines
+command /setulticon [<text>]:
+    permission: rbp.debug
+    permission message: &cNada.
+    trigger:
+        if arg 1 is not set:
+            send "&cNo arguments."
+            stop
+        else if arg 1 is "check":
+            send "&aYour ultimate icon: &2%{ult::icon::%player's uuid%} parsed as an item%"
+            stop
+        else:
+            set {ult::icon::%player's uuid%} to arg 1
+            send "&aSet ultimate icon to &2%arg-1%&a! Respawn for changes to take effect."
+
+# "Ultimate" popping events
+on right click:
+    name of player's tool contains "&fUltimate: &lWarrior":
+        cancel event
+        {disableUlt::%player's uuid%} is true:
+            send "&cThe duel owner has disabled ultimates." to {_p}
+            play sound "note.pling" to {_p}
+            stop
+        ultHandle(player)
+        apply strength 1 to player for 15 seconds
+        apply regeneration 1 to player for 5 seconds
+        wait 15 seconds
+        delete {uhp::%player's uuid%}
+        if {ult::%player's uuid%} = 0:
+            set action bar of player to "&bUltimate power deactivated."
+        else:
+            stop
+    name of player's tool contains "&fUltimate: &lArcher":
+        cancel event
+        {disableUlt::%{_u}%} is true:
+            send "&cThe duel owner has disabled ultimates." to {_p}
+            play sound "note.pling" to {_p}
+            stop
+        ultHandle(player)
+        apply regeneration 1 to player for 15 seconds
+        loop items in player's inventory:
+            if loop-item is a bow:
+                disenchant loop-item
+                enchant loop-item with power 1
+                enchant loop-item with punch 2
+                enchant loop-item with flame 2
+            if loop-item is a stone sword:
+                enchant loop-item with sharpness 1
+        wait 15 seconds
+        delete {uhp::%player's uuid%}
+        if {ult::%player's uuid%} is 1:
+            set action bar of player to "&bUltimate power deactivated."
+            loop items in player's inventory:
+                if loop-item is a bow:
+                    disenchant loop-item
+                    enchant loop-item with power 2
+                if loop-item is a stone sword:
+                    disenchant loop-item
+        else:
+            stop
+    name of player's tool contains "&fUltimate: &lHermes":
+        cancel event
+        {disableUlt::%player's uuid%} is true:
+            send "&cThe duel owner has disabled ultimates." to {_p}
+            play sound "note.pling" to {_p}
+            stop
+        ultHandle(player)
+        apply strength 1 to player for 15 seconds
+        remove speed from player
+        apply speed 3 to player for 15 seconds
+        apply regeneration 1 to player for 5 seconds
+        wait 15 seconds
+        delete {uhp::%player's uuid%}
+        if {ult::%player's uuid%} = 2:
+            remove speed from player
+            set action bar of player to "&bUltimate power deactivated."
+            wait 1 tick
+            apply speed 2 to player for 9999 days
+            wait 1 tick
+            apply speed 2 to player for 9999 days
+            wait 1 tick
+            apply speed 2 to player for 9999 days
+        else:
+            stop
+    name of player's tool contains "&fUltimate: &lReaper":
+        cancel event
+        {disableUlt::%player's uuid%} is true:
+            send "&cThe duel owner has disabled ultimates." to {_p}
+            play sound "note.pling" to {_p}
+            stop
+        ultHandle(player)
+        apply strength 1 to player for 15 seconds
+        apply regeneration 1 to player for 7.5 seconds
+        apply resistance 1 to player for 15 seconds
+        set {sp::%player's uuid%} to true
+        wait 15 seconds
+        if {hasused::%player's uuid%} is not true:
+            stop
+        delete {sp::%player's uuid%}
+        delete {uhp::%player's uuid%}
+        set max health of player to 10
+        set action bar of player to "&bUltimate power deactivated."
+    name of player's tool contains "&fUltimate: &lAngler":
+        cancel event
+        {disableUlt::%player's uuid%} is true:
+            send "&cThe duel owner has disabled ultimates." to {_p}
+            play sound "note.pling" to {_p}
+            stop
+        ultHandle(player)
+        set max health of player to 10
+        apply regeneration 1 to player for 15 seconds
+        apply strength 2 to player for 5 seconds
+        wait 1 tick
+        holdonGiveSTG(player)
+        wait 15 seconds
+        delete {uhp::%player's uuid%}
+        if {ult::%player's uuid%} is 4:
+            set action bar of player to "&bUltimate power deactivated."
+            set max health of player to 8
+        else:
+            stop
+    name of player's tool contains "&fUltimate: &lRevenant":
+        cancel event
+        {disableUlt::%player's uuid%} is true:
+            send "&cThe duel owner has disabled ultimates." to {_p}
+            play sound "note.pling" to {_p}
+            stop
+        ultHandle(player)
+        apply weakness 1 to player for 15 seconds
+        remove speed from player
+        apply slowness 1 to player for 15 seconds
+        set {_c} to a random integer between 2 and 5
+        spawn {_c} of skeleton at player
+        loop entities in radius 3 of player:
+            if loop-entity is skeleton:
+                wait 1 tick
+                set helmet of loop-entity to leather helmet
+                dye helmet of loop-entity light gray
+                set tool of loop-entity to wooden sword
+                enchant tool of loop-entity with sharpness 1
+                set {leader::%loop-entity%} to uuid of player
+                chance of 15%:
+                    apply speed 2 to loop-entity for 15 seconds
+                chance of 15%:
+                    apply resistance 1 to loop-entity for 15 seconds
+                chance of 15%:
+                    apply strength 2 to loop-entity for 15 seconds
+        wait 15 seconds
+        delete {uhp::%player's uuid%}
+        if {ult::%player's uuid%} = 4:
+            wait 1 tick
+            apply speed 1 to player for 9999 days
+            set action bar of player to "&bUltimate power deactivated."
+        else:
+            stop
+
+# I don't remember if this was ever used
+function holdonGiveSTG(p: player):
+    wait 5 seconds
+    apply strength 1 to {_p} for 10 seconds
+# Generic "Ultimate" handling function
+function ultHandle(p: player):
+    set {_u} to uuid of {_p}
+    wait 1 tick
+    set {_p}'s tool to air
+    play sound "random.break" to {_p}
+    launch ball large coloured red, orange and white fading to light blue and white at {_p}'s location with duration 0
+    set {uhp::%{_u}%} to true
+    set action bar of {_p} to "&bUltimate power activated."

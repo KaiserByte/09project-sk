@@ -1,0 +1,33 @@
+# GUI border functions, mainly used to make GUIs look more aesthetically pleasing.
+
+function guiWindow3(p: player):
+    set {_bg::*} to 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 19, 20, 21, 22, 23, 24, 25, and 26
+    make gui slot {_bg::*} of {_p} with black glass pane named "&b" to do nothing
+function guiWindow4(p: player):
+    set {_bg::*} to 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33, 34, and 35
+    make gui slot {_bg::*} of {_p} with black glass pane named "&b" to do nothing
+function guiWindow5(p: player):
+    set {_bg::*} to 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 37, 38, 39, 40, 41, 42, 43, and 44
+    make gui slot {_bg::*} of {_p} with black glass pane named "&b" to do nothing
+function guiWindow6(p: player):
+    set {_bg::*} to 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, and 55
+    make gui slot {_bg::*} of {_p} with black glass pane named "&b" to do nothing
+command /gui_test [<text>]:
+    trigger:
+        if arg 1 is set:
+            if arg 1 is "6":
+                open virtual chest inventory with size 6 named "guitest" to player
+                wait 1 tick
+                guiWindow6(player)
+            if arg 1 is "5":
+                open virtual chest inventory with size 5 named "guitest" to player
+                wait 1 tick
+                guiWindow5(player)
+            if arg 1 is "4":
+                open virtual chest inventory with size 4 named "guitest" to player
+                wait 1 tick
+                guiWindow4(player)
+            if arg 1 is "3":
+                open virtual chest inventory with size 3 named "guitest" to player
+                wait 1 tick
+                guiWindow3(player)

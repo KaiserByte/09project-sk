@@ -1,0 +1,702 @@
+# Gameplay mechanics script. There is no organization.
+
+# Anti-hunger event
+on hunger bar change:
+    cancel event
+
+# Class command
+command /class [<text>]:
+    aliases: kit
+    permission: 09.kit
+    trigger:
+        if {hasused::%player's uuid%} is true:
+            stop
+        if arg 1 is not set:
+            classSelect(player)
+        else:
+            if arg 1 is "warrior" or "0":
+                kitTest(player, 0)
+            if arg 1 is "archer" or "1":
+                kitArcher(player, 0)
+            if arg 1 is "hermes" or "2":
+                kitHermes(player, 0)
+            if arg 1 is "reaper" or "3":
+                kitReaper(player, 0)
+            if arg 1 is "angler" or "4":
+                kitFisherman(player, 0)
+            if arg 1 is "revenant" or "5":
+                #kitRevenant(player, 0)
+                send "&cForbidden message."
+
+# Sign interaction event
+on click on sign:
+    line 2 of event-block contains "&2&lClick me to":
+        classSelect(player)
+        stop
+    line 1 of clicked block contains "Doors":
+        teleporttoMap(player)
+        stop
+
+# Class selection GUI. This is a mess to look at.
+function classSelect(p: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 1 named "Select Class" to {_p}
+    wait 1 tick
+    {isDueling::%{_u}%} is true:
+        {classToggle::0::%{_u}%} is 1:
+            make gui slot 2 of {_p} with iron sword named "&fWarrior" with lore "&f&l&nArmor:", " &7- Protection 3 Leather Cap", " &7- Protection 1 Chainmail Chestplate", " &7- Protection 1 Iron Leggings", " &7- Protection 1 Chainmail Boots", "&f&l&nWeapon:", " &7- Iron Sword", "&f&l&nUltimate:", " &7- 5 seconds of Regeneration 1", " &7- 15 seconds of Strength 1", "&f&l&nAbilities:", "  &f&l&nShield:", "    &7- Activated by blocking; negates all damage taken.", "    &7- Cancels out and reflects incoming arrows.", "    &7- Pushes the attacker backwards.", "      &f&l&nCooldown:", "        &7- Arrow Damage: 2 seconds", "        &7- Melee Damage: 7 seconds", "        &7- Sword is 25%% weaker during cooldown", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+        {classToggle::0::%{_u}%} is 0:
+            make gui slot 2 of {_p} with barrier named "&cWarrior" with lore "&f&l&nArmor:", " &7- Protection 3 Leather Cap", " &7- Protection 1 Chainmail Chestplate", " &7- Protection 1 Iron Leggings", " &7- Protection 1 Chainmail Boots", "&f&l&nWeapon:", " &7- Iron Sword", "&f&l&nUltimate:", " &7- 5 seconds of Regeneration 1", " &7- 15 seconds of Strength 1", "&f&l&nAbilities:", "  &f&l&nShield:", "    &7- Activated by blocking; negates all damage taken.", "    &7- Cancels out and reflects incoming arrows.", "    &7- Pushes the attacker backwards.", "      &f&l&nCooldown:", "        &7- Arrow Damage: 2 seconds", "        &7- Melee Damage: 7 seconds", "        &7- Sword is 25%% weaker during cooldown", "&b" and "&cThis class was disabled by the Duel owner."
+        {classToggle::2::%{_u}%} is 1:
+            make gui slot 3 of {_p} with leather boots named "&fHermes" with lore "&f&l&nArmor:", " &7- Leather Cap", " &7- Leather Chestplate", " &7- Leather Leggings", " &7- Leather Boots", "&f&l&nWeapon:", " &7- Knockback 1 Iron Sword", "&f&l&nUltimate:", " &7- 5 seconds of Regeneration 1", " &7- 15 seconds of Speed 3" and " &7- 15 seconds of Strength 1", "&f&l&nAbilities:", " &7- Permanent Speed 2", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+            color slot 3 of {_p}'s current inventory lime
+        {classToggle::2::%{_u}%} is 0:
+            make gui slot 3 of {_p} with barrier named "&fHermes" with lore "&f&l&nArmor:", " &7- Leather Cap", " &7- Leather Chestplate", " &7- Leather Leggings", " &7- Leather Boots", "&f&l&nWeapon:", " &7- Knockback 1 Iron Sword", "&f&l&nUltimate:", " &7- 5 seconds of Regeneration 1", " &7- 15 seconds of Speed 3" and " &7- 15 seconds of Strength 1", "&f&l&nAbilities:", " &7- Permanent Speed 2", "&b" and "&cThis class was disabled by the Duel owner."
+        {classToggle::1::%{_u}%} is 1:
+            make gui slot 4 of {_p} with bow named "&fArcher" with lore "&f&l&nArmor:", " &7- Protection 1 Leather Cap", " &7- Protection 1 Iron Chestplate", " &7- Protection 1 Leather Leggings", " &7- Protection 1 Iron Boots", "&f&l&nWeapons:", " &7- Stone Sword", " &7- Power 2 Bow", "&f&l&nUltimate:", " &7- 15 seconds of Regeneration 1", " &7- 15 seconds of Sharpness 1", " &7- 15 seconds of Flame 2", " &7- 15 seconds of Punch 2", "&f&l&nAbilities:", " &7- Permanent Speed 1", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+        {classToggle::1::%{_u}%} is 0:
+            make gui slot 4 of {_p} with barrier named "&cArcher" with lore "&f&l&nArmor:", " &7- Protection 1 Leather Cap", " &7- Protection 1 Iron Chestplate", " &7- Protection 1 Leather Leggings", " &7- Protection 1 Iron Boots", "&f&l&nWeapons:", " &7- Stone Sword", " &7- Power 2 Bow", "&f&l&nUltimate:", " &7- 15 seconds of Regeneration 1", " &7- 15 seconds of Sharpness 1", " &7- 15 seconds of Flame 2", " &7- 15 seconds of Punch 2", "&f&l&nAbilities:", " &7- Permanent Speed 1", "&b" and "&cThis class was disabled by the Duel owner."
+        {classToggle::3::%{_u}%} is 1:
+            make gui slot 5 of {_p} with stone hoe named "&fReaper" with lore "&f&l&nArmor:", " &7- Leather Chestplate", " &7- Leather Leggings", " &7- Leather Boots", "&f&l&nWeapon:", " &7- Fire Aspect 1 Stone Sword", "&f&l&nSpecial Weapon:", " &7- Lifesteal 1 Stone Scythe", "&f&l&nUltimate:", " &7- 15 seconds of Resistance 1", " &7- 7.5 seconds of Regeneration 1", " &7- 15 seconds of Strength 1", " &7- 15 seconds of Lifesteal 5", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+        {classToggle::3::%{_u}%} is 0:
+            make gui slot 5 of {_p} with barrier named "&cReaper" with lore "&f&l&nArmor:", " &7- Leather Chestplate", " &7- Leather Leggings", " &7- Leather Boots", "&f&l&nWeapon:", " &7- Fire Aspect 1 Stone Sword", "&f&l&nSpecial Weapon:", " &7- Lifesteal 1 Stone Scythe", "&f&l&nUltimate:", " &7- 15 seconds of Resistance 1", " &7- 7.5 seconds of Regeneration 1", " &7- 15 seconds of Strength 1", " &7- 15 seconds of Lifesteal 5", "&b" and "&cThis class was disabled by the duel owner."
+        {classToggle::4::%{_u}%} is 1:
+            make gui slot 6 of {_p} with fishing rod named "&fAngler" with lore "&f&l&nArmor:", " &7- Leather Cap", " &7- Chainmail Chestplate", " &7- Protection 1 Chainmail Leggings", " &7- Leather Boots", "&f&l&nWeapon:", " &7- Knockback 1 and Sharpness 1 Wooden Sword", " &7- Fishing Rod", "&f&l&nUltimate:", " &7- 15 seconds of Regeneration 1", " &7- 5 seconds of Strength 2, then 10s of Strength 1", " &7- 50%% chance of getting Fried Fish when rodding someone", " &7- Max health of player increased to 10 hearts", " &7- Eating Fried Fish instantly heals 3 hearts", "&f&l&nAbilities:", "  &f&l&nAngler's Rod:", "    &7- 20%% chance of getting Fried Fish when rodding someone", "    &f&l&nFried Fish:", "        &7- Instantly heals the player by 2 hearts", "        &7- Can stack up to 10", "&f&l&nDisabilities:", " &7- &cMax health is set to 8 hearts", " &7- &cNo natural health regeneration", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+        {classToggle::4::%{_u}%} is 0:
+            make gui slot 6 of {_p} with barrier named "&cAngler" with lore "&f&l&nArmor:", " &7- Leather Cap", " &7- Chainmail Chestplate", " &7- Protection 1 Chainmail Leggings", " &7- Leather Boots", "&f&l&nWeapon:", " &7- Knockback 1 and Sharpness 1 Wooden Sword", " &7- Fishing Rod", "&f&l&nUltimate:", " &7- 15 seconds of Regeneration 1", " &7- 5 seconds of Strength 2, then 10s of Strength 1", " &7- 50%% chance of getting Fried Fish when rodding someone", " &7- Max health of player increased to 10 hearts", " &7- Eating Fried Fish instantly heals 3 hearts", "&f&l&nAbilities:", "  &f&l&nAngler's Rod:", "    &7- 20%% chance of getting Fried Fish when rodding someone", "    &f&l&nFried Fish:", "        &7- Instantly heals the player by 2 hearts", "        &7- Can stack up to 10", "&f&l&nDisabilities:", " &7- &cMax health is set to 8 hearts", " &7- &cNo natural health regeneration", "&b" and "&cThis class was disabled by the Duel owner."
+    else:
+        make gui slot 2 of {_p} with iron sword named "&fWarrior" with lore "&f&l&nArmor:", " &7- Protection 3 Leather Cap", " &7- Protection 1 Chainmail Chestplate", " &7- Protection 1 Iron Leggings", " &7- Protection 1 Chainmail Boots", "&f&l&nWeapon:", " &7- Iron Sword", "&f&l&nUltimate:", " &7- 5 seconds of Regeneration 1", " &7- 15 seconds of Strength 1", "&f&l&nAbilities:", "  &f&l&nShield:", "    &7- Activated by blocking; negates all damage taken.", "    &7- Cancels out and reflects incoming arrows.", "    &7- Pushes the attacker backwards.", "      &f&l&nCooldown:", "        &7- Arrow Damage: 2 seconds", "        &7- Melee Damage: 7 seconds", "        &7- Sword is 25%% weaker during cooldown", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+        make gui slot 3 of {_p} with leather boots named "&fHermes" with lore "&f&l&nArmor:", " &7- Leather Cap", " &7- Leather Chestplate", " &7- Leather Leggings", " &7- Leather Boots", "&f&l&nWeapon:", " &7- Knockback 1 Iron Sword", "&f&l&nUltimate:", " &7- 5 seconds of Regeneration 1", " &7- 15 seconds of Speed 3" and " &7- 15 seconds of Strength 1", "&f&l&nAbilities:", " &7- Permanent Speed 2", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+        color slot 3 of {_p}'s current inventory lime
+        make gui slot 4 of {_p} with bow named "&fArcher" with lore "&f&l&nArmor:", " &7- Protection 1 Leather Cap", " &7- Protection 1 Iron Chestplate", " &7- Protection 1 Leather Leggings", " &7- Protection 1 Iron Boots", "&f&l&nWeapons:", " &7- Stone Sword", " &7- Power 2 Bow", "&f&l&nUltimate:", " &7- 15 seconds of Regeneration 1", " &7- 15 seconds of Sharpness 1", " &7- 15 seconds of Flame 2", " &7- 15 seconds of Punch 2", "&f&l&nAbilities:", " &7- Permanent Speed 1", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+        make gui slot 5 of {_p} with stone hoe named "&fReaper" with lore "&f&l&nArmor:", " &7- Leather Chestplate", " &7- Leather Leggings", " &7- Leather Boots", "&f&l&nWeapon:", " &7- Fire Aspect 1 Stone Sword", "&f&l&nSpecial Weapon:", " &7- Lifesteal 1 Stone Scythe", "&f&l&nUltimate:", " &7- 15 seconds of Resistance 1", " &7- 7.5 seconds of Regeneration 1", " &7- 15 seconds of Strength 1", " &7- 15 seconds of Lifesteal 5", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+        make gui slot 6 of {_p} with fishing rod named "&fAngler" with lore "&f&l&nArmor:", " &7- Leather Cap", " &7- Chainmail Chestplate", " &7- Protection 1 Chainmail Leggings", " &7- Leather Boots", "&f&l&nWeapon:", " &7- Knockback 1 and Sharpness 1 Wooden Sword", " &7- Fishing Rod", "&f&l&nUltimate:", " &7- 15 seconds of Regeneration 1", " &7- 5 seconds of Strength 2, then 10s of Strength 1", " &7- 50%% chance of getting Fried Fish when rodding someone", " &7- Max health of player increased to 10 hearts", " &7- Eating Fried Fish instantly heals 3 hearts", "&f&l&nAbilities:", "  &f&l&nAngler's Rod:", "    &7- 20%% chance of getting Fried Fish when rodding someone", "    &f&l&nFried Fish:", "        &7- Instantly heals the player by 2 hearts", "        &7- Can stack up to 10", "&f&l&nDisabilities:", " &7- &cMax health is set to 8 hearts", " &7- &cNo natural health regeneration", "&b", "&a< &7Left-click to spawn randomly" and "&a> &7Right-click to choose a spawn point"
+
+
+# Anti-interaction event
+on right click on a furnace, crafting table, enchanting table, anvil, beacon, dispenser, dropper or brewing stand:
+    gamemode of player is survival
+    cancel event
+
+# Anti-till event
+on right click with a stone hoe:
+    cancel event
+
+# Anti-item decay event (excludes some items)
+on item damage:
+    name of event-item does not contain "&fBattle-Worn Bow" or "&fThe Puncher":
+        cancel event
+
+#Anti-weather change event
+on weather change:
+    cancel event
+
+#on death:
+#    delete {ult::%player's uuid%}
+
+# What does this do again?
+on inventory click:
+    name of clicked item contains "&fStone Scythe":
+        cancel event
+    name of clicked item contains "&fFish Crumbs":
+        cancel event
+    name of clicked item contains "&fFried Fish":
+        cancel event
+    name of clicked item contains "&fAngler's Rod":
+        cancel event
+
+#Archer arrow cooldown
+on shoot:
+    {ult::%shooter's uuid%} is 1
+    send subtitle "&7⬝&8⬝⬝" to shooter
+    wait 0.75 seconds
+    send subtitle "&7⬝⬝&8⬝" to shooter
+    wait 0.75 seconds
+    send subtitle "&7⬝⬝⬝" to shooter
+    wait 0.75 seconds
+    send subtitle "&f" to shooter
+    {hasused::%shooter's uuid%} is true
+    set {_i} to 35
+    play sound "note.pling" to shooter
+    loop 35 times:
+        if slot {_i} of shooter is air:
+            set slot {_i} of shooter to arrow
+            exit loop
+        else if slot {_i} of shooter is arrow:
+            exit loop
+        else:
+            add -1 to {_i}
+
+# Soul checker
+on connect:
+    if {souls::%player's uuid%} is not set:
+        set {souls::%player's uuid%} to 0
+
+# Disabled natural healing for Anglers
+on heal:
+    {ult::%player's uuid%} is 4
+    heal cause = satiated:
+        {uhp::%player's uuid%} is set:
+            stop
+        else:
+            cancel event
+#on fish:
+#    {isFishing::%player's uuid%} is true:
+#        delete {isFishing::%player's uuid%}
+#        stop
+#    {isFishing::%player's uuid%} is not set:
+#        set {isFishing::%player's uuid%} to true
+#        #megasplode(player)
+#        stop
+
+# Fun debug function
+function megasplode(p: player):
+    play sound "random.explode" to {_p}
+    push {_p} backwards at speed 1
+    push {_p} upwards at speed 0.3
+
+# Debug event. Intended purpose is unknown
+on sneak toggle:
+    wait 1 tick
+    player is sneaking:
+        {ult::%player's uuid%} is 4
+        set {_i} to health of player / 2
+    #player is not sneaking:
+        #send "&cyea yea" to player
+
+# Fish consumption event
+on right click:
+    name of event-item contains "&fFried Fish"
+    loop players in radius 10 of player:
+        play sound "random.eat" to loop-player
+    cancel event
+    set slot 8 of {_p}'s inventory to {%item amount of slot 8 of player's inventory - 1%} of cooked salmon named "&fFried Fish" with lore "&7A tasty treat, filled with your daily doses of proteins and vitamins."
+    {ult::%player's uuid%} is 4
+    {uhp::%player's uuid%} is set:
+        remove 1 of event-item from player's inventory
+        set health of player to health of player + 3
+        set {fishcount::%{_u}%} to {fishcount::%{_u}%} - 1
+        #heal player by 3 hearts
+        wait 1 tick
+        slot 8 of player is air:
+            set slot 8 of player to melon seeds named "&fFish Crumbs" with lore "&7Perhaps with some fishing, you could get some more fish."
+        stop
+    else:
+        remove 1 of event-item from player's inventory
+        set health of player to health of player + 2
+        #heal player by 2 hearts
+        wait 1 tick
+        slot 8 of player is air:
+            set slot 8 of player to melon seeds named "&fFish Crumbs" with lore "&7Perhaps with some fishing, you could get some more fish."
+        stop
+
+# Why?
+on craft of bow:
+    cancel event
+
+# Damage handling event
+on damage of a player:
+    {ult::%attacker's uuid%} is 4
+    tool of attacker is fishing rod
+    {ult::%victim's uuid%} is 0:
+        victim is blocking:
+            stop
+    {uhp::%attacker's uuid%} is set:
+        chance of 50%:
+            play sound "random.click" to victim
+            play sound "random.successful_hit" to attacker
+            fishGive(attacker)
+    else:
+        chance of 20%:
+            play sound "random.click" to victim
+            play sound "random.successful_hit" to attacker
+            fishGive(attacker)
+# Fish giving function
+function fishGive(p: player):
+    set {_u} to uuid of {_p}
+    if {ult::%{_u}%} is 4:
+        loop items in {_p}'s inventory:
+            name of loop-item contains "&fFried Fish":
+                set {_am} to amount of loop-item named "&fFried Fish" in {_p}'s inventory
+                {_am} = 0:
+                    set {_am} to 1
+                wait 1 tick
+                set {_x} to {_am} + 1
+                wait 1 tick
+                {_x} >= 10:
+                    set {_x} to 10
+                wait 1 tick
+                set {fishcount::%{_u}%} to {fishcount::%{_u}%} + 1
+                set slot 8 of {_p}'s inventory to {_x} of cooked salmon named "&fFried Fish" with lore "&7A tasty treat, filled with your daily doses of proteins and vitamins."
+                exit loop
+            name of loop-item contains "&fFish Crumbs":
+                set {fishcount::%{_u}%} to {fishcount::%{_u}%} + 1
+                set slot 8 of {_p}'s inventory to 1 of cooked salmon named "&fFried Fish" with lore "&7A tasty treat, filled with your daily doses of proteins and vitamins."
+                exit loop
+    else:
+        # Debug exception
+        send "&cYou tried to regenerate your fish counter, but you don't have class ID 4!" to {_p}
+
+# Kill command and combat timer
+command /kill:
+    trigger:
+        {hasused::%player's uuid%} is not true:
+            send "&cYou can't do that here."
+            stop
+        {cl::%player's uuid%} is true:
+            send "&cYou must be out of combat first." to player
+            stop
+        set {suicide::%player's uuid%} to true
+        kill player
+        wait 1 second
+        delete {suicide::%player's uuid%}
+command /ct:
+    trigger:
+        {cltime::%player's uuid%} exists:
+            set {_t} to difference between {cltime::%player's uuid%} and now
+            send "&bCombat Time: &3%{cltime::%player's uuid%}%&b/&35 seconds" to player
+            #send "obligatory debug line: %{_t}%" to player
+        else:
+            {hasused::%player's uuid%} does not exist:
+                send "&cYou're not even in an arena."
+            else:
+                send "&aYou have no combat cooldown. You may use &c/kill&a." to player
+                stop
+
+# Item-specific damage handler events. Good luck figuring this out
+on damage of a player:
+    tool of attacker is a fishing rod:
+        set {_xx} to true
+    {ult::%attacker's uuid%} is 0:
+        {bc::%attacker's uuid%} exists:
+            set {_a} to damage
+            set {_a} to {_a} / 4
+            set {_a} to {_a} * 3
+            set {ricochetKill::%attacker's uuid%} to true
+            set damage to {_a}
+    damage cause is fall:
+        set {_d} to damage
+        {_d} < 4.5:
+            cancel event
+    name of attacker's tool contains "&fStone Scythe":
+        #{ult::%victim's uuid%} is 0:
+            #cancel event
+            #stop
+        {sc::%attacker's uuid%} is true:
+            cancel event
+            stop
+        set {sc::%attacker's uuid%} to true
+        {sc::%attacker's uuid%} is true:
+            {sp::%attacker's uuid%} is true:
+                set {_d} to damage
+                set {_h} to victim's health
+                set {_d} to {_h} / 2
+                damage victim by {_d}
+                set {_v} to 131
+                set max health of attacker to 15
+                heal attacker
+                set {_e::%attacker's uuid%} to true
+            else:
+                set {_d} to damage
+                set {_h} to victim's health
+                set {_d} to {_h} / 2
+                damage victim by {_d}
+                set {_v} to 131
+                set {_i} to a random integer between 0.5 and 2
+                chance of 20%:
+                    set max health of attacker to 12.5
+                chance of 20%:
+                    set max health of attacker to 12.5
+                    heal attacker by 2.5
+                    set {_e::%attacker's uuid%} to true
+        loop 15 times:
+            if {sd::%attacker's uuid%} is true:
+                exit loop
+            #loop all items in the inventory of attacker:
+            #    name of loop-value-2 contains "&fStone Scythe":
+            #        slot of loop-value-2 is not 1:
+            #            remove loop-item from player's inventory
+            set slot 1 of attacker to stone hoe named "&fStone Scythe" damaged by {_v}
+            add -8 to {_v}
+            wait 1 second
+        wait 1 tick
+        delete {sc::%attacker's uuid%}
+        wait 1 tick
+        {sd::%attacker's uuid%} is not true:
+            set slot 1 of attacker to stone hoe named "&fStone Scythe"
+        {_e::%attacker's uuid%} is true:
+            wait 1 tick
+            set max health of attacker to 10
+            delete {_e::%attacker's uuid%}
+    attacker is a player
+    if {cl::%victim's uuid%} is true:
+        stop
+    else:
+        victim does not have permission "09.kill"
+        set {cl::%victim's uuid%} to true
+        set {cltime::%victim's uuid%} to 0
+        loop 5 times:
+            add 1 to {cltime::%victim's uuid%}
+            wait 1 second
+            {cltime::%victim's uuid%} = 5:
+                delete {cl::%victim's uuid%}
+                delete {cltime::%victim's uuid%}
+                exit loop
+    #attacker is a player
+on damage:
+    victim's tool is iron sword:
+        {ult::%victim's uuid%} is 0
+        attacker is a player
+        victim is blocking
+        {bc::%victim's uuid%} doesn't exist:
+            set damage to 0
+            wait 1 tick
+            push attacker up at speed 0.1
+            push attacker backwards at speed 0.8
+            set {_item::%victim's uuid%} to victim's tool
+            set {bc::%victim's uuid%} to true
+            play sound "BLAZE_HIT" to victim
+            play sound "BLAZE_HIT" to attacker
+            "%damage cause%" is "projectile":
+                {_xx} is not true:
+                    shoot a arrow from victim at speed 0.9
+                set {_i} to 125
+                set {isBlocking::%victim's uuid%} to true
+                loop 2 times:
+                    {isBlocking::%victim's uuid%} does not exist:
+                        exit loop
+                    set slot 0 of victim to iron sword damaged by {_i}
+                    add -125 to {_i}
+                    wait 1 second
+                delete {isBlocking::%victim's uuid%}
+            else:
+                set {isBlocking::%victim's uuid%} to true
+                set {_i} to 35
+                loop 7 times:
+                    {isBlocking::%victim's uuid%} does not exist:
+                        exit loop
+                    set slot 0 of victim to iron sword damaged by {_i}
+                    add -35 to {_i}
+                    wait 1 second
+                delete {isBlocking::%victim's uuid%}
+            delete {bc::%victim's uuid%}
+        else:
+            set {_e2} to damage * 2
+            damage victim by {_e2}
+
+# Debug damage event. I misread projectile as pedophile before making this comment
+#on damage:
+#    victim is a projectile
+#    {ult::%victim's uuid%} is 0
+#    victim's tool is iron sword:
+#        victim is blocking
+#        play sound "BLAZE_HIT" to victim
+#        delete event-projectile
+#        shoot a arrow from victim at speed 0.7
+on damage:
+    damage cause is fall:
+        victim is sneaking:
+            set {_a} to damage
+            set {_a} to {_a} / 4
+            set {_a} to {_a} * 3
+            set damage to {_a}
+on damage:
+    {ult::%attacker's uuid%} is not 1:
+        set {_i} to damage
+        set {_i} to {_i} / 2
+        set {_i} to damage
+
+# Anti-drop event
+on drop:
+    player's gamemode is survival
+    cancel event
+
+# Health pickup event
+on pick up:
+    wait 1 tick
+    event-item is red mushroom:
+        remove 64 red mushrooms from player's inventory
+        heal player by 1.5 heart
+    event-item is poppy:
+        remove 64 of poppy from player's inventory
+        heal player by 2.5 hearts
+    event-item is apple:
+        remove 64 of apple from player's inventory
+        heal player by 3.5 hearts
+    event-item is redstone block:
+        remove 64 of redstone block from player's inventory
+        heal player by 5 hearts
+# Manual arena spawn command. Spawn IDs are hardcoded
+command /setpvpspawn [<text>]:
+    permission: rbp.setpvpspawn
+    trigger:
+        if arg 1 is "reset":
+            delete {pvpspawn::*}
+            send "cleared"
+            stop
+        if arg 1 is set:
+            set {pvpspawn::%arg-1%} to player's location
+            send "set %arg-1%" to player
+        else:
+            send "no arg" to player
+
+# What?
+on quit:
+    {hasused::%player's uuid%} is true
+    kill the player
+    clear {hasused::%player's uuid%}
+    respawn the player
+# I used defib's head for presents in the GUI. This was never implemented.
+on join:
+    wait 5 ticks
+    {hasused::%player's uuid%} is true
+    set {_a} to skull of "defib" parsed as a offlineplayer
+    {hasFreePass::%player's uuid%} is not set:
+        set {hasFreePass::%player's uuid%} to false
+    kill the player
+    clear {hasused::%player's uuid%}
+    respawn the player
+
+# Rock snowball damage handler event
+on damage:
+    name of attacker's tool contains "&fRock Snowballs"
+    set damage to 1
+    push victim backwards at speed 0.5
+
+# Reset max health function
+function resetHealth(p: player):
+    set max health of {_p} to 10
+
+#For reference:
+#
+#"ult" is the ID of the class the player chooses
+#"type" is the ID of the ultimate of the class the player chooses
+#
+
+function kitTest(p: player, ti: integer):
+    resetHealth({_p})
+    set {_u} to uuid of {_p}
+    set {ult::%{_u}%} to 0
+    delete {_p}'s inventory
+    {nakedopt::%{_u}%} != 1:
+        armorTest({_p})
+    set slot 0 of {_p} to iron sword
+    set slot 1 of {_p} to a nether star named "&fUltimate: &lWarrior"
+    set slot 2 of {_p} to 24 of glowing snowball named "&fRock Snowballs" with lore "&7A violent twist on the classic holiday activity."
+    set {_u} to uuid of {_p}
+    set {hasused::%{_u}%} to true
+    {_ti} == 1:
+        stop
+    else:
+        teleporttoMap({_p})
+function kitArcher(p: player, ti: integer):
+    resetHealth({_p})
+    set {_u} to uuid of {_p}
+    set {ult::%{_u}%} to 1
+    delete {_p}'s inventory
+    {nakedopt::%{_u}%} != 1:
+        armorArcher({_p})
+    apply speed 1 to {_p} for 9999 days
+    set slot 0 of {_p} to stone sword
+    set slot 1 of {_p} to bow
+    #enchant slot 1 of {_p} with infinity 1 <- This is not needed anymore
+    enchant slot 1 of {_p} with power 2
+    set slot 10 of {_p} to arrow
+    set slot 2 of {_p} to nether star named "&fUltimate: &lArcher"
+    set slot 3 of {_p} to 24 of glowing snowball named "&fRock Snowballs" with lore "&7A violent twist on the classic holiday activity."
+    set {hasused::%{_u}%} to true
+    {_ti} == 1:
+        stop
+    else:
+        teleporttoMap({_p})
+function kitHermes(p: player, ti: integer):
+    resetHealth({_p})
+    set {_u} to uuid of {_p}
+    set {ult::%{_u}%} to 2 
+    delete {_p}'s inventory
+    {nakedopt::%{_u}%} != 1:
+        armorHermes({_p})
+    apply speed 2 to {_p} for 9999 days
+    set slot 0 of {_p} to iron sword
+    enchant slot 0 of {_p} with knockback 1
+    set slot 1 of {_p} to nether star named "&fUltimate: &lHermes"
+    set slot 2 of {_p} to 24 of glowing snowball named "&fRock Snowballs" with lore "&7A violent twist on the classic holiday activity."
+    set {_u} to uuid of {_p}
+    set {hasused::%{_u}%} to true
+    {_ti} == 1:
+        stop
+    else:
+        teleporttoMap({_p})
+function kitReaper(p: player, ti: integer):
+    resetHealth({_p})
+    set {_u} to uuid of {_p}
+    set {ult::%{_u}%} to 3
+    delete {_p}'s inventory
+    {nakedopt::%{_u}%} != 1:
+        armorReaper({_p})
+    apply fire resistance 1 to {_p} for 9999 days
+    set slot 0 of {_p} to stone sword
+    enchant slot 0 of {_p} with fire aspect 1
+    set slot 1 of {_p} to stone hoe named "&fStone Scythe" with lore "&7""A weapon forged from the spirits of darkness."""
+    set slot 2 of {_p} to nether star named "&fUltimate: &lReaper"
+    set slot 3 of {_p} to 24 of glowing snowball named "&fRock Snowballs" with lore "&7A violent twist on the classic holiday activity."
+    set {_u} to uuid of {_p}
+    set {hasused::%{_u}%} to true
+    {_ti} == 1:
+        stop
+    else:
+        teleporttoMap({_p})
+function kitFisherman(p: player, ti: integer):
+    resetHealth({_p})
+    set {_u} to uuid of {_p}
+    set {ult::%{_u}%} to 4
+    delete {_p}'s inventory
+    {nakedopt::%{_u}%} != 1:
+        armorFisherman({_p})
+    set slot 0 of {_p} to wooden sword
+    enchant slot 0 of {_p} with sharpness 1 and knockback 1
+    apply speed 1 to {_p} for 9999 days
+    set slot 1 of {_p} to fishing rod named "&fAngler's Rod" with lore "&7""Truly a relic of its time; this rod has withstood centuries of use."""
+    set slot 2 of {_p} to nether star named "&fUltimate: &lAngler"
+    set slot 8 of {_p} to 4 of cooked salmon named "&fFried Fish" with lore "&7A tasty treat, filled with your daily doses of proteins and vitamins."
+    set slot 3 of {_p} to 24 of glowing snowball named "&fRock Snowballs" with lore "&7A violent twist on the classic holiday activity."
+    set {_u} to uuid of {_p}
+    set {hasused::%{_u}%} to true
+    set {fishcount::%{_u}%} to 4
+    set max health of {_p} to 8
+    {_ti} == 1:
+        stop
+    else:
+        teleporttoMap({_p})
+function kitRevenant(p: player, ti: integer):
+    resetHealth({_p})
+    set {_u} to uuid of {_p}
+    set {ult::%{_u}%} to 9
+    delete {_p}'s inventory
+    set helmet of {_p} to skeleton skull
+    set chestplate of {_p} to iron chestplate
+    set leggings of {_p} to leather leggings
+    set boots of {_p} to iron boots
+    dye leggings of {_p} black
+    enchant {_p}'s leggings with protection 1
+    enchant {_p}'s chestplate with protection 1
+    apply speed 1 to {_p} for 9999 days
+    set slot 0 of {_p} to iron sword
+    enchant slot 0 of {_p} with sharpness 1
+    set slot 1 of {_p} to nether star named "&fUltimate: &lRevenant"
+    set slot 2 of {_p} to 24 of glowing snowball named "&fRock Snowballs" with lore "&7A violent twist on the classic holiday activity."
+    set {_u} to uuid of {_p}
+    set {hasused::%{_u}%} to true
+    {_ti} == 1:
+        stop
+    else:
+        teleporttoMap({_p})
+
+
+# Armor functions. Independent from class functions because of Naked Mode
+function armorTest(p: player):
+    set helmet of {_p} to leather helmet
+    set chestplate of {_p} to chain chestplate
+    set leggings of {_p} to iron leggings
+    set boots of {_p} to chain boots
+    enchant {_p}'s helmet with protection 3
+    enchant {_p}'s chestplate with protection 1
+    enchant {_p}'s leggings with protection 1
+    enchant {_p}'s boots with protection 1
+    dye helmet of {_p} dark gray
+function armorArcher(p: player):
+    set helmet of {_p} to leather helmet
+    set chestplate of {_p} to iron chestplate
+    set leggings of {_p} to leather leggings
+    set boots of {_p} to iron boots
+    enchant {_p}'s helmet with protection 1
+    enchant {_p}'s chestplate with protection 1
+    enchant {_p}'s leggings with protection 1
+    enchant {_p}'s boots with protection 1
+    dye helmet of {_p} blue
+    dye leggings of {_p} blue
+function armorHermes(p: player):
+    set helmet of {_p} to leather helmet
+    set chestplate of {_p} to leather chestplate
+    set leggings of {_p} to leather leggings
+    set boots of {_p} to leather boots
+    dye helmet of {_p} lime
+    dye chestplate of {_p} lime
+    dye leggings of {_p} lime
+    dye boots of {_p} lime
+    enchant {_p}'s helmet with unbreaking 10
+    enchant {_p}'s chestplate with unbreaking 10
+    enchant {_p}'s leggings with unbreaking 10
+    enchant {_p}'s boots with unbreaking 10
+function armorReaper(p: player):
+    #set helmet of {_p} to wither skeleton skull
+    #Halloween (doesnt work):
+    #set {_a} to jack-o-lantern
+    #set helmet of {_p} to {_a}
+    #Christmas:
+    set {_a} to "defib" parsed as a offlineplayer
+    set helmet of {_p} to skull of {_a}
+    set chestplate of {_p} to leather chestplate
+    set leggings of {_p} to leather leggings
+    set boots of {_p} to leather boots
+    dye chestplate of {_p} black
+    dye leggings of {_p} black
+    dye boots of {_p} black
+    #dye chestplate of {_p} red
+    #dye leggings of {_p} red
+    #dye boots of {_p} red
+    enchant {_p}'s chestplate with protection 1
+function armorFisherman(p: player):
+    set helmet of {_p} to leather helmet
+    set chestplate of {_p} to chain chestplate
+    set leggings of {_p} to chain leggings
+    set boots of {_p} to leather boots
+    dye helmet of {_p} yellow
+    dye boots of {_p} yellow
+    #dye boots of {_p} red
+    enchant {_p}'s leggings with protection 1
+
+# Teleport debug command
+command /tpdebug:
+    permission: rbp.debug
+    trigger:
+        teleporttoMap(player)
+# Sign break event
+on break of a sign:
+    line 2 of event-block contains "Click me to"
+    # Why did I not use a UUID? This will probably be broken in 5 years.
+    player's name does not contain "JustKaiser":
+        cancel event
+
+# Random spawn function
+function teleporttoMap(p: player):
+    set {_u} to uuid of {_p}
+    {customTeleportLoc::%{_u}%} exists:
+        wait 1 tick
+        teleport {_p} to {pvpspawn::%{customTeleportLoc::%{_u}%}%}
+        delete {isSpawning::%{_u}%}
+        delete {customTeleportLoc::%{_u}%}
+        stop
+    if {map::%{_u}%} is 0:
+        set {_c} to a random integer between 1 and 6
+        teleport {_p} to {pvpspawn::%{_c}%}
+    if {map::%{_u}%} is 1:
+        set {_c} to a random integer between 7 and 12
+        teleport {_p} to {pvpspawn::%{_c}%}
+    if {map::%{_u}%} is 2:
+        set {_c} to a random integer between 13 and 18
+        teleport {_p} to {pvpspawn::%{_c}%}
+# Random spawn initialization function
+function teleportInit(p: player, i: integer):
+    set {_u} to uuid of {_p}
+    set {customTeleportLoc::%{_u}%} to {_i}
+    {customTeleportKit::%{_u}%} = 0:
+        kitTest({_p}, 0)
+    {customTeleportKit::%{_u}%} = 1:
+        kitArcher({_p}, 0)
+    {customTeleportKit::%{_u}%} = 2:
+        kitHermes({_p}, 0)
+    {customTeleportKit::%{_u}%} = 3:
+        kitReaper({_p}, 0)
+    {customTeleportKit::%{_u}%} = 4:
+        kitFisherman({_p}, 0)

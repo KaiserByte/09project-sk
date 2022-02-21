@@ -1,0 +1,242 @@
+# DISCLAIMER: I, KaiserByte, have the alias "evelon" on SKUnity. This was a script I made that I eventually released to the public before 09project's scripts became public.
+#
+#
+# BeaconCaptcha by "evelon" on SKUnity. As long as you don't claim that *you* wrote this script, you're free to do whatever you want.
+#
+# Permissions:
+#   beacon.use | Used solely for /beacon.
+#   beacon.bypass | Bypasses the need to use the Beacon Captcha.
+#
+# Commands:
+#   /beacon [VAR/TEST/FAIL/CORRECT/CLEAR]: (Permission: beacon.use)
+#     VAR: Debug command that scrambles the Beacon Captcha's patterns.
+#     TEST: Opens up the Beacon Captcha.
+#     FAIL: Opens up the "Captcha Failed" animated GUI.
+#     CORRECT: Opens up the "Passed Captcha" animated GUI.
+#     CLEAR: Clears your Beacon Captcha data. (This forces you to pass the Beacon Captcha again, unless if you have the permission "beacon.bypass".)
+
+options:
+
+    # In-Game Messages:
+
+    # console_send_message:
+    #   This message is sent to the server's console if a player (that has NOT solved the Beacon Captcha) attempts to chat/enter a command.
+    console_send_message : %player% has not solved the Beacon captcha yet.
+    # player_send_message:
+    #   This message is sent to a player (that has NOT solved the Beacon Captcha) if they attempt to chat.
+    player_send_chat : &cYou must solve the &f&lBeacon &r&ccaptcha to speak in chat.
+    # player_send_command:
+    #   This message is sent to a player (that has NOT solved the Beacon Captcha) if they attempt to enter a command.
+    player_send_command : &cYou must solve the &f&lBeacon &r&ccaptcha to use commands.
+    # permission_deny_message:
+    #   This is sent to a player if they do not have the permission required to use /beacon.
+    permission_deny_message : &cYou do not have access to this command.
+
+    # Blocks / GUI Messages:
+
+    # refresh_time:
+    #   Sets the time between each "refresh" of the Beacon Captcha's block set.
+    #   NOTE: I do not recommend setting this time to anything less than 10-30 seconds, as this *could* cause lag. (I'm not saying it will, but it's better to be safe than sorry, eh?)
+    refresh_time : 5 minutes
+    # beacon_true_blocks:
+    #   Sets the "true" Beacon Captcha blocks, AKA the ones that send you to the "Incorrect Captcha" screen when clicked. These are randomly switched after [refresh_time].
+    #   NOTE: The block list MUST follow this format:
+    #      X, Y, or Z
+    beacon_true_blocks : gold block, iron block, diamond block, or emerald block
+    # beacon_false_blocks:
+    #   Sets the "false" Beacon Captcha blocks, AKA the ones that advance you through the 6 stages of the Beacon Captcha. These are randomly switched after [refresh_time].
+    #   NOTE: Like beacon_true_blocks, the block list MUST follow this format:
+    #      X, Y, or Z
+    beacon_false_blocks : redstone block, lapis lazuli block, or block of coal
+    # beacon_block_name:
+    #   Sets the name of each Beacon Captcha block. This name is applied to both "true" and "false" Beacon blocks.
+    beacon_block_name : &fBeacon Block
+    # beacon_block_beam:
+    #   Sets the name of the Beacon Captcha beam.
+    beacon_beam_name : &fBeacon Beam
+    # beacon_beam_lore:
+    #   Sets the lore of the Beacon Captcha beam.
+    beacon_beam_lore : &7Click me to finish the &f&lBeacon &r&7captcha.
+    # fail_name:
+    #   Used as the name of every item in the "Incorrect Captcha" screen.
+    fail_name : &c&l✘ You failed the &f&lBeacon &c&lcaptcha.
+    # pass_name:
+    #   Used as the name of every item in the "Passed Captcha" screen.
+    pass_name : &a&l✔ You finished the &f&lBeacon &a&lcaptcha.
+    # pass_lore:
+    #   Used in line 1 of the "Passed Captcha" screen.
+    pass_lore : &7You may use commands and speak in chat now.
+    # quit_lore:
+    #   Used in line 1 of the "Incorrect Captcha" screen's lore and in line 2 of the "Passed Captcha" screen's lore.
+    quit_lore : &7Click anywhere to exit this menu.
+
+
+    # Sounds:
+
+    # correct_sound:
+    #   The sound that plays when you click on a false Beacon Block. (For a list of sounds, contact your local Google Search)
+    correct_sound : random.orb
+    # pass_sound:
+    #   The sound that plays when pass the Beacon Captcha. (For a list of sounds, contact your local Google Search)
+    pass_sound : level_up
+    # correct_sound:
+    #   The sound that plays when you fail the Beacon Captcha. (For a list of sounds, contact your local Google Search)
+    fail_sound : note.bass
+
+    # Titles:
+
+    # gui_title_captcha:
+    #   GUI title for the main Beacon Captcha.
+    gui_title_captcha : &0What block doesn't match?
+    # gui_title_fail:
+    #   GUI title for the "Captcha Failed" animated GUI.
+    gui_title_fail : &0BEACON | INCORRECT
+    # gui_title_pass:
+    #   GUI title for the "Passed Captcha" animated GUI.
+    gui_title_pass : &0BEACON | CORRECT
+
+
+
+
+#WARNING: This code was created in March of 2020 and is poorly written. I'd do a complete rewrite, but I doubt it'd optimize much.
+
+
+on chat:
+    player does not have permission "beacon.bypass"
+    if {safe2chat::%player's uuid%} is not set:
+        cancel event
+        set {captchaphase::%player's uuid%} to 1
+        captchaGUI(player)
+        send "{@player_send_chat}"
+        send "{@console_send_message}" to console
+on command:
+    sender is console:
+        stop
+    player does not have permission "beacon.bypass"
+    if {safe2chat::%player's uuid%} is not set:
+        cancel event
+        set {captchaphase::%player's uuid%} to 1
+        captchaGUI(player)
+        send "{@player_send_command}"
+        send "{@console_send_message}" to console
+
+command /beacon <text>:
+    permission: beacon.use
+    permission message: {@permission_deny_message}
+    trigger:
+        if arg 1 is "VAR":
+            guicaptchaVAR()
+        if arg 1 is "TEST":
+            set {captchaphase::%player's uuid%} to 1
+            captchaGUI(player)
+        if arg 1 is "FAIL":
+            guicaptchaFail(player)
+        if arg 1 is "CORRECT":
+            guicaptchaFinal(player)
+        if arg 1 is "CLEAR":
+            delete {safe2chat::%player's uuid%}
+on skript start:
+    guicaptchaVAR()
+every {@refresh_time}:
+    guicaptchaVAR()
+
+# Wow, this code is unreadable! Great job, myself.
+
+function captchaGUI(p: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 6 named "{@gui_title_captcha}" to {_p}
+    wait 1 tick
+    make gui slot {beaconbg::*} of {_p} with light blue glass pane named "&b"
+    make gui slot {beaconbg2::*} of {_p} with white glass pane named "&b"
+    make gui slot 13 of {_p} with beacon named "{@beacon_beam_name}" to do nothing
+    make gui slot {beaconTOWER::*} of {_p} with {beacon_B} named "{@beacon_block_name}" to run function guicaptchaFail({_p})
+    {captchaphase::%{_u}%} is 1:
+        set {_o} to a random object out of {beaconD::*}
+        make gui slot {_o} of {_p} with {beaconfB} named "{@beacon_block_name}" to run function guicaptchaCorrect({_p})
+    {captchaphase::%{_u}%} is 2:
+        play sound "{@correct_sound}" to {_p}
+        set {_o} to a random object out of {beaconC::*}
+        make gui slot {_o} of {_p} with {beaconfB} named "{@beacon_block_name}" to run function guicaptchaCorrect({_p})
+    {captchaphase::%{_u}%} is 3:
+        play sound "{@correct_sound}" to {_p}
+        set {_o} to a random object out of {beaconB::*}
+        make gui slot {_o} of {_p} with {beaconfB} named "{@beacon_block_name}" to run function guicaptchaCorrect({_p})
+    {captchaphase::%{_u}%} is 4:
+        play sound "{@correct_sound}" to {_p}
+        set {_o} to a random object out of {beaconA::*}
+        make gui slot {_o} of {_p} with {beaconfB} named "{@beacon_block_name}" to run function guicaptchaCorrect({_p})
+    {captchaphase::%{_u}%} is 5:
+        play sound "{@correct_sound}" to {_p}
+        make gui slot 13 of {_p} with glowing beacon named "{@beacon_beam_name}" with lore "{@beacon_beam_lore}" to run function guicaptchaFinal({_p})
+    stop
+function guicaptchaVAR():
+    set {beaconbg::*} to 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, and 53
+    set {beaconbg2::*} to 1, 9, 10, 11, 16, and 17
+    set {beaconS} to 13
+    set {beaconTOWER::*} to 21, 22, 23, 29, 30, 31, 32, 33, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 48, 49, 50, 51, 52, and 53
+    set {beaconBLOCK::*} to gold block, iron block, diamond block, or emerald block
+    set {beaconfalseBLOCK::*} to redstone block, lapis lazuli block, or block of coal
+    set {beacon_B} to a random object out of {beaconBLOCK::*}
+    set {beaconfB} to a random object out of {beaconfalseBLOCK::*}
+    set {beaconD::*} to 45, 46, 47, 48, 49, 50, 51, 52, or 53
+    set {beaconC::*} to 37, 38, 39, 40, 41, 42, or 43
+    set {beaconB::*} to 29, 30, 31, 32, or 33
+    set {beaconA::*} to 21, 22, or 23
+function guicaptchaCorrect(p: player):
+    set {_u} to uuid of {_p}
+    add 1 to {captchaphase::%{_u}%}
+    captchaGUI({_p})
+function guicaptchaFail(p: player):
+    play sound "{@fail_sound}" to {_p}
+    set {_u} to uuid of {_p}
+    delete {captchaphase::%{_u}%}
+    open virtual chest inventory with size 6 named "{@gui_title_fail}" to {_p}
+    wait 1 tick
+    set {_wrongbg::*} to 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, and 53
+    set {_v} to 0
+    make gui slot {_wrongbg::*} of {_p} with black glass pane named "{@fail_name}" with lore "{@quit_lore}" to close
+    loop 7 times:
+        add 1 to {_v}
+        if {_v} is 1:
+            make gui slot 1, 10, and 46 of {_p} with red glass pane named "{@fail_name}" with lore "{@quit_lore}" to close
+        if {_v} is 2:
+            make gui slot 20 and 38 of {_p} with red glass pane named "{@fail_name}" with lore "{@quit_lore}" to close
+        if {_v} is 3:
+            make gui slot 30 of {_p} with red glass pane named "{@fail_name}" with lore "{@quit_lore}" to close
+        if {_v} is 4:
+            make gui slot 31 of {_p} with red glass pane named "{@fail_name}" with lore "{@quit_lore}" to close
+        if {_v} is 5:
+            make gui slot 32 of {_p} with red glass pane named "{@fail_name}" with lore "{@quit_lore}" to close
+        if {_v} is 6:
+            make gui slot 42 and 24 of {_p} with red glass pane named "{@fail_name}" with lore "{@quit_lore}" to close
+        if {_v} is 7:
+            make gui slot 52, 16, and 7 of {_p} with red glass pane named "{@fail_name}" with lore "{@quit_lore}" to close
+        wait 2.8 ticks
+function guicaptchaFinal(p: player):
+    play sound "{@pass_sound}" to {_p}
+    set {_u} to uuid of {_p}
+    delete {captchaphase::%{_u}%}
+    set {safe2chat::%{_u}%} to true
+    open virtual chest inventory with size 6 named "{@gui_title_pass}" to {_p}
+    wait 1 tick
+    set {_wrongbg::*} to 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, and 53
+    set {_v} to 0
+    make gui slot {_wrongbg::*} of {_p} with white glass pane named "{@pass_name}" with lore "{@pass_lore}" and "{@quit_lore}" to close
+    loop 7 times:
+        add 1 to {_v}
+        if {_v} is 1:
+            make gui slot 10 and 19 of {_p} with lime glass pane named "{@pass_name}" with lore "{@pass_lore}" and "{@quit_lore}" to close
+        if {_v} is 2:
+            make gui slot 29 of {_p} with lime glass pane named "{@pass_name}" with lore "{@pass_lore}" and "{@quit_lore}" to close
+        if {_v} is 3:
+            make gui slot 39 of {_p} with lime glass pane named "{@pass_name}" with lore "{@pass_lore}" and "{@quit_lore}" to close
+        if {_v} is 4:
+            make gui slot 31 of {_p} with lime glass pane named "{@pass_name}" with lore "{@pass_lore}" and "{@quit_lore}" to close
+        if {_v} is 5:
+            make gui slot 32 of {_p} with lime glass pane named "{@pass_name}" with lore "{@pass_lore}" and "{@quit_lore}" to close
+        if {_v} is 6:
+            make gui slot 24 of {_p} with lime glass pane named "{@pass_name}" with lore "{@pass_lore}" and "{@quit_lore}" to close
+        if {_v} is 7:
+            make gui slot 16 of {_p} with lime glass pane named "{@pass_name}" with lore "{@pass_lore}" and "{@quit_lore}" to close
+        wait 2.8 ticks
+        # Why is it 2.8...? The inner machinations of my mind are an enigma.

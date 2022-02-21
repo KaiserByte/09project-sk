@@ -1,0 +1,196 @@
+on connect:
+    if {map::%player's uuid%} is not set:
+        set {map::%player's uuid%} to 1
+    if {dmsg::%player's uuid%} is not set:
+        set {dmsg::%player's uuid%} to 0
+    if {shpbr::%player's uuid%} is not set:
+        set {shpbr::%player's uuid%} to 0
+    if {kllscr::%player's uuid%} is not set:
+        set {kllscr::%player's uuid%} to 0
+    if {motdtype::%player's uuid%} is not set:
+        set {motdtype::%player's uuid%} to 0
+    # My friend nsla helped with one of the maps, and this was an attempt at making dynamic GUI lore. If nsla changes his name and connects to the server, the server will change the lore to fit his new name.
+    player's uuid = "546e2423a5f94ab9995053bf52045c1f":
+        set {helper::0} to "%player%"
+command /options [<text>]:
+    aliases: opt, settings
+    trigger:
+        if arg 1 is not set:
+            optMenu0(player)
+        if arg 1 is "map":
+            {hasused::%player's uuid%} is true:
+                send "&cYou must be outside of an arena to use this command."
+                stop
+            {isDueling::%player's uuid%} is true:
+                send "&cYou must be outside of a Duel to use this command."
+                stop
+            else:
+                optMenu1(player)
+        if arg 1 is "dmsg":
+            dmsgSwitch(player)
+
+# If I had taken an actual programming class, this would make my teacher weep.
+function optMenu0(p: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 4 named "Options" to {_p}
+    set {_background::*} to 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33, 34, and 35
+    make gui slot {_background::*} of {_p} with black glass pane named "&b"
+    if {map::%{_u}%} is 0:
+        if {hasused::%{_u}%} is true:
+            make gui slot 10 of {_p} with mycelium named "&f&l&nMaps:" with lore "&7Switches which map you spawn at.", "&cMaps cannot be selected while in an arena.", "&b" and "&7Selected map: &aGrimworld"
+        else if {isDueling::%{_u}%} is true:
+            make gui slot 10 of {_p} with mycelium named "&f&l&nMaps:" with lore "&7Switches which map you spawn at.", "&cMaps cannot be selected while in a Duel.", "&b" and "&7Selected map: &aGrimworld"
+        else:
+            make gui slot 10 of {_p} with mycelium named "&f&l&nMaps:" with lore "&7Switches which map you spawn at.", "&b" and "&7Selected map: &aGrimworld" to run function optMenu1({_p})
+    if {map::%{_u}%} is 1:
+        if {hasused::%{_u}%} is true:
+            make gui slot 10 of {_p} with jungle sapling named "&f&l&nMaps:" with lore "&7Switches which map you spawn at.", "&cMaps cannot be selected while in an arena.", "&b" and "&7Selected map: &aOasis"
+        else if {isDueling::%{_u}%} is true:
+            make gui slot 10 of {_p} with jungle sapling named "&f&l&nMaps:" with lore "&7Switches which map you spawn at.", "&cMaps cannot be selected while in a Duel.", "&b" and "&7Selected map: &aOasis"
+        else:
+            make gui slot 10 of {_p} with jungle sapling named "&f&l&nMaps:" with lore "&7Switches which map you spawn at.", "&b" and "&7Selected map: &aOasis" to run function optMenu1({_p})
+    if {map::%{_u}%} is 2:
+        if {hasused::%{_u}%} is true:
+            make gui slot 10 of {_p} with mossy stone bricks named "&f&l&nMaps:" with lore "&7Switches which map you spawn at.", "&cMaps cannot be selected while in an arena.", "&b" and "&7Selected map: &aAztec"
+        else if {isDueling::%{_u}%} is true:
+            make gui slot 10 of {_p} with mossy stone bricks named "&f&l&nMaps:" with lore "&7Switches which map you spawn at.", "&cMaps cannot be selected while in a Duel.", "&b" and "&7Selected map: &aAztec"
+        else:
+            make gui slot 10 of {_p} with mossy stone bricks named "&f&l&nMaps:" with lore "&7Switches which map you spawn at.", "&b" and "&7Selected map: &aAztec" to run function optMenu1({_p})
+    #make gui slot 11 of {_p} with paper named "&f&l&nMessages:" with lore "&7Various options for client messages." to run function dmsgSwitch({_p})
+    #if {shpbr::%{_u}%} is 0:
+        #make gui slot 12 of {_p} with paper named "&f&l&nShop Hotbar:" with lore "&7..." to run function dmsgSwitch({_p})
+    #if {shpbr::%{_u}%} is 1:
+        #make gui slot 12 of {_p} with paper named "&f&l&nShop Hotbar:" with lore "&7..." to run function dmsgSwitch({_p})
+    if {kllscr::%{_u}%} = 0:
+        make gui slot 11 of {_p} with paper named "&f&l&nScoreboard Tally:" with lore "&7Toggles the type of kills/deaths shown.", "&b", "&7This has been set to &aSession Kills&7." and "&7Click to switch to &aTotal Kills&7." to run function scrSwitch({_p})
+    if {kllscr::%{_u}%} = 1:
+        make gui slot 11 of {_p} with paper named "&f&l&nScoreboard Tally:" with lore "&7Toggles the type of kills/deaths shown.", "&b", "&7This has been set to &aTotal Kills&7." and "&7Click to switch to &aSession Kills&7." to run function scrSwitch({_p})
+    if {motdtype::%{_u}%} = 0:
+        make gui slot 12 of {_p} with paper named "&f&l&nMOTD Style:" with lore "&7Toggles the way the MOTD is shown when you log in.", "&b", "&7This has been set to &aObnoxious Mode&7." and "&7Click to switch to &aCompact Mode&7." to run function motdSwitch({_p})
+    if {motdtype::%{_u}%} = 1:
+        make gui slot 12 of {_p} with paper named "&f&l&nMOTD Style:" with lore "&7Toggles the way the MOTD is shown when you log in.", "&b", "&7This has been set to &aCompact Mode&7." and "&7Click to switch to &aObnoxious Mode&7." to run function motdSwitch({_p})
+    if {nakedopt::%{_u}%} = 0:
+        make gui slot 25 of {_p} with glowing diamond helmet named "&f&l&nNaked Mode (Unlockable):" with lore "&7Toggles Naked Mode; automatically un-equips armor when spawning.", "&b", "&7This has been &cdisabled&7." and "&7Click to &aenable&7 Naked Mode." to run function nakedSwitch({_p})
+    if {nakedopt::%{_u}%} = 1:
+        make gui slot 25 of {_p} with glowing leather helmet named "&f&l&nNaked Mode (Unlockable):" with lore "&7Toggles Naked Mode; automatically un-equips armor when spawning.", "&b", "&7This has been &aenabled&7." and "&7Click to &cdisable&7 Naked Mode." to run function nakedSwitch({_p})
+function optMenu1(p: player):
+    set {_u} to uuid of {_p}
+    open virtual chest inventory with size 3 named "Maps | Options" to {_p}
+    guiWindow3({_p})
+    set {_bg::*} to 10, 12, 14, and 16
+    make gui slot {_bg::*} of {_p} with black glass pane named "&b"
+    make gui slot 22 of {_p} with barrier named "&c<< Go Back" with lore "&7Click to go back." to run function optMenu0({_p})
+    if {map::%{_u}%} is 0:
+        make gui slot 11 of {_p} with glowing mycelium named "&fGrimworld" with lore "&7The remains of what was a thriving forest, eroded by time.", "&b" and "&7You already have this map selected."
+        make gui slot 13 of {_p} with mossy stone bricks named "&fAztec" with lore "&7Objectively the best Counter-Strike map.", "&7Original map by Cristopher Auty (narby).", "&7Additional help by &7%{helper::0}%&7.", "&b" and "&7Click to &aenable &7this map." to run function mapSwitch({_p}, 2)
+        make gui slot 15 of {_p} with jungle sapling named "&fOasis" with lore "&7A peaceful island, untouched by mankind.", "&b" and "&7Click to &aenable &7this map." to run function mapSwitch({_p}, 1)
+    if {map::%{_u}%} is 1:
+        make gui slot 11 of {_p} with mycelium named "&fGrimworld" with lore "&7The remains of what was a thriving forest, eroded by time.", "&b" and "&7Click to &aenable &7this map." to run function mapSwitch({_p}, 0)
+        make gui slot 13 of {_p} with mossy stone bricks named "&fAztec" with lore "&7Objectively the best Counter-Strike map.", "&7Original map by Cristopher Auty (narby).", "&7Additional help by &7%{helper::0}%&7.", "&b" and "&7Click to &aenable &7this map." to run function mapSwitch({_p}, 2)
+        make gui slot 15 of {_p} with glowing jungle sapling named "&fOasis" with lore "&7A peaceful island, untouched by mankind.", "&b" and "&7You already have this map selected."
+    if {map::%{_u}%} is 2:
+        make gui slot 11 of {_p} with mycelium named "&fGrimworld" with lore "&7The remains of what was a thriving forest, eroded by time.", "&b" and "&7Click to &aenable &7this map." to run function mapSwitch({_p}, 0)
+        make gui slot 13 of {_p} with glowing mossy stone bricks named "&fAztec" with lore "&7Objectively the best Counter-Strike map.", "&7Original map by Cristopher Auty (narby).", "&7Additional help by &7%{helper::0}%&7.", "&b" and "&7You already have this map selected."
+        make gui slot 15 of {_p} with jungle sapling named "&fOasis" with lore "&7A peaceful island, untouched by mankind.", "&b" and "&7Click to &aenable &7this map." to run function mapSwitch({_p}, 1)
+
+# Map switch function. What else would this be?
+function mapSwitch(p: player, i: number):
+    set {_u} to uuid of {_p}
+    {_i} is 0:
+        set {map::%{_u}%} to 0
+        send "&aMap set to Grimworld." to {_p}
+        scoreboardUpdate({_p})
+        optMenu0({_p})
+        stop
+    {_i} is 1:
+        set {map::%{_u}%} to 1
+        send "&aMap set to Oasis." to {_p}
+        scoreboardUpdate({_p})
+        optMenu0({_p})
+        stop
+    {_i} is 2:
+        set {map::%{_u}%} to 2
+        send "&aMap set to Aztec." to {_p}
+        scoreboardUpdate({_p})
+        optMenu0({_p})
+        stop
+
+# I don't think this ever worked.
+function dmsgSwitch(p: player):
+    wait 1 tick
+    set {_u} to uuid of {_p}
+    #make {_p} execute command "/toggledeathmsg"
+    {dmsg::%{_u}%} is 0:
+        set {dmsg::%{_u}%} to 1
+        make gui slot 11 of {_p} with paper named "&f&l&nMessages:" with lore "&7Various options for client Messages." to run function dmsgSwitch({_p})
+        stop
+    {dmsg::%{_u}%} is 1:
+        set {dmsg::%{_u}%} to 0
+        make gui slot 11 of {_p} with paper named "&f&l&nMessages:" with lore "&7Various options for client Messages." to run function dmsgSwitch({_p})
+        stop
+# Scoreboard tally switcher
+function scrSwitch(p: player):
+    wait 1 tick
+    set {_u} to uuid of {_p}
+    {kllscr::%{_u}%} = 0:
+        set {kllscr::%{_u}%} to 1
+        wait 1 tick
+        make gui slot 11 of {_p} with paper named "&f&l&nScoreboard Tally:" with lore "&7Toggles the amount of kills shown on the scoreboard.", "&b", "&7This has been set to &aTotal Kills&7." and "&7Click to switch to &aSession Kills&7." to run function scrSwitch({_p})
+        scoreboardUpdate({_p})
+        stop
+    {kllscr::%{_u}%} = 1:
+        set {kllscr::%{_u}%} to 0
+        wait 1 tick
+        make gui slot 11 of {_p} with paper named "&f&l&nScoreboard Tally:" with lore "&7Toggles the amount of kills shown on the scoreboard.", "&b", "&7This has been set to &aSession Kills&7." and "&7Click to switch to &aTotal Kills&7." to run function scrSwitch({_p})
+        scoreboardUpdate({_p})
+        stop
+# Client-side MOTD switcher
+function motdSwitch(p: player):
+    wait 1 tick
+    set {_u} to uuid of {_p}
+    {motdtype::%{_u}%} = 0:
+        set {motdtype::%{_u}%} to 1
+        wait 1 tick
+        #make gui slot 14 of {_p} with paper named "&f&l&nMOTD Style:" with lore "&7Toggles the way the MOTD is shown when you log in.", "&b", "&7This has been set to &aObnoxious Mode&7." and "&7Click to switch to &aCompact Mode&7." to run function motdSwitch({_p})
+        optMenu0({_p})
+        stop
+    {motdtype::%{_u}%} = 1:
+        set {motdtype::%{_u}%} to 0
+        wait 1 tick
+        #make gui slot 14 of {_p} with paper named "&f&l&nMOTD Style:" with lore "&7Toggles the way the MOTD is shown when you log in.", "&b", "&7This has been set to &aCompact Mode&7." and "&7Click to switch to &aObnoxious Mode&7." to run function motdSwitch({_p})
+        optMenu0({_p})
+        stop
+# Enable/disable Naked Mode, which spawns the player with no protective equipment
+function nakedSwitch(p: player):
+    wait 1 tick
+    set {_u} to uuid of {_p}
+    {nakedopt::%{_u}%} = 0:
+        wait 1 tick
+        set {nakedopt::%{_u}%} to 1
+        wait 1 tick
+        optMenu0({_p})
+        stop
+    {nakedopt::%{_u}%} = 1:
+        wait 1 tick
+        set {nakedopt::%{_u}%} to 0
+        wait 1 tick
+        optMenu0({_p})
+        stop
+
+# Debug naked commands (I never thought I'd ever say this)
+command /resetnaked:
+    permission: rbp.debug
+    trigger:
+        delete {nakedopt::%player's uuid%}
+command /sendnaked:
+    permission: rbp.debug
+    trigger:
+        send "%{nakedopt::%player's uuid%}%"
+command /givenaked [<player>]:
+    permission: rbp.debug
+    trigger:
+        arg 1 is not set:
+            send "&c no arg"
+            stop
+        else:
+            set {nakedopt::%arg-1's uuid%} to 0

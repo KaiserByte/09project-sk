@@ -1,0 +1,67 @@
+#OLD COMMENT: Everything here contains the optional "choose-ur-own-spawn" mechanic, except for the TP handlers in main
+#NEW COMMENT: As you can tell, I used very formal language back then.
+
+# Manual spawn selectors
+function spawnSelect(p: player):
+    set {_u} to uuid of {_p}
+    set {isSpawning::%{_u}%} to true
+    open virtual chest inventory with size 1 named "Select Spawn" to {_p}
+    wait 1 tick
+    {map::%{_u}%} == 0:
+        make gui slot 0 of {_p} with sea lantern named "&aCentre" to close then run function teleportInit({_p}, 1)
+        make gui slot 1 of {_p} with coarse dirt named "&aVantage Point" to close then run function teleportInit({_p}, 2)
+        make gui slot 2 of {_p} with dark oak log named "&aThe Oakening" to close then run function teleportInit({_p}, 3)
+        make gui slot 3 of {_p} with gravel named "&aBurning Memories" to close then run function teleportInit({_p}, 4)
+        make gui slot 4 of {_p} with black stained clay named "&aPathway" to close then run function teleportInit({_p}, 5)
+        make gui slot 5 of {_p} with mycelium named "&aHillside" to close then run function teleportInit({_p}, 6)
+        make gui slot 8 of {_p} with barrier named "&c<< Back" with lore "&7Click to return to the class selection screen." to run function classSelect({_p})
+    {map::%{_u}%} == 1:
+        make gui slot 0 of {_p} with light blue stained glass named "&aNear the Ocean" to close then run function teleportInit({_p}, 7)
+        make gui slot 1 of {_p} with grass block named "&aMounds" to close then run function teleportInit({_p}, 8)
+        make gui slot 2 of {_p} with grass named "&aMounds" to close then run function teleportInit({_p}, 9)
+        make gui slot 3 of {_p} with sand named "&aThe Lake" to close then run function teleportInit({_p}, 10)
+        make gui slot 4 of {_p} with red sand named "&aEdge of the Beach" to close then run function teleportInit({_p}, 11)
+        make gui slot 5 of {_p} with gravel block named "&aCorner of the Beach" to close then run function teleportInit({_p}, 12)
+        make gui slot 8 of {_p} with barrier named "&c<< Back" with lore "&7Click to return to the class selection screen." to run function classSelect({_p})
+    {map::%{_u}%} == 2:
+        make gui slot 0 of {_p} with firework rocket named "&aBombsite &bB" to close then run function teleportInit({_p}, 13)
+        make gui slot 1 of {_p} with cobblestone stairs named "&aBack Way" to close then run function teleportInit({_p}, 14)
+        make gui slot 2 of {_p} with fire charge named "&aBombsite &cA" to close then run function teleportInit({_p}, 15)
+        make gui slot 3 of {_p} with vines named "&aSewers" to close then run function teleportInit({_p}, 16)
+        make gui slot 4 of {_p} with mossy stone bricks named "&aCourtyard" to close then run function teleportInit({_p}, 17)
+        make gui slot 5 of {_p} with oak fence named "&aBridge" to close then run function teleportInit({_p}, 18)
+        make gui slot 8 of {_p} with barrier named "&c<< Back" with lore "&7Click to return to the class selection screen." to run function classSelect({_p})
+
+# Click GUI events
+on inventory click:
+    name of player's current inventory contains "Select Class"
+    name of clicked item contains "&fWarrior":
+        click type is left mouse button:
+            kitTest(player, 0)
+        click type is right mouse button:
+            set {customTeleportKit::%player's uuid%} to 0
+            spawnSelect(player)
+    name of clicked item contains "&fArcher":
+        click type is left mouse button:
+            kitArcher(player, 0)
+        click type is right mouse button:
+            set {customTeleportKit::%player's uuid%} to 1
+            spawnSelect(player)
+    name of clicked item contains "&fHermes":
+        click type is left mouse button:
+            kitHermes(player, 0)
+        click type is right mouse button:
+            set {customTeleportKit::%player's uuid%} to 2
+            spawnSelect(player)
+    name of clicked item contains "&fReaper":
+        click type is left mouse button:
+            kitReaper(player, 0)
+        click type is right mouse button:
+            set {customTeleportKit::%player's uuid%} to 3
+            spawnSelect(player)
+    name of clicked item contains "&fAngler":
+        click type is left mouse button:
+            kitFisherman(player, 0)
+        click type is right mouse button:
+            set {customTeleportKit::%player's uuid%} to 4
+            spawnSelect(player)

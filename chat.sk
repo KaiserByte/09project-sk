@@ -1,0 +1,187 @@
+### Chat system.
+
+#MuteChat, hastily made by evelon/KaiserByte
+options:
+    permission_mutechat : evelon.mutechat
+    permission_mutechat_exempt : evelon.mutechat.exempt # Allows players to speak in chat, even if chat has been disabled.
+    deny_message : &c&lHey! &r&7Chat is currently muted.
+    permission_deny_message : &cInsufficient permissions.
+    mutechat_broadcast_message : &d[&7Mute Chat&d] &cChat has been muted by PLAYERNAME&c. # "PLAYERNAME" will be replaced with the player's display name. You can get rid of it, if needed.
+    unmutechat_broadcast_message : &d[&7Mute Chat&d] &aChat has been unmuted by PLAYERNAME&a. # See above.
+    #trphyjson : json("%loop-player%", "&d[%{trphy::%loop-player's uuid%::sel::0::a}%||&r&d]|| &f%{_u}%||ttp:&7UUID: &f%player's uuid%%nl%&7Souls: &f%{souls::%player's uuid%}%||: %message%")
+    defaultjson : json("%loop-player%", "&f%{_u}%||ttp:&7UUID: &f%player's uuid%%nl%&7Souls: &f%{souls::%player's uuid%}%||: %message%")
+    opjson : json("%loop-player%", "&f%{_u}%||ttp:&7UUID: &f%player's uuid%%nl%&7Souls: &f%{souls::%player's uuid%}%%nl%&7%nl%&aClick to manage &2%player%&a.||cmd:/b %player%||: %message%")
+
+
+#json
+on chat:
+    cancel event
+    {killChatWait::%player's uuid%} is true:
+        set {_i} to message parsed as number
+        {_i} is 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29 or 30:
+            set {duelKillReq::%player's uuid%} to {_i}
+            send "&aDuel kill-requirement has been set to &2%{_i}%&a." to player
+            delete {killChatWait::%player's uuid%}
+            stop
+        else:
+            send "&cArgument is either out of range, or isn't a number at all. Try again in a bit." to player
+            stop
+    {safe2chat::%player's uuid%} is not set:
+        player does not have permission "beacon.bypass"
+        stop
+    #I'll explain why this line even exists: I used a plugin called ConsoleSpamFix to get rid of the heaps of stack traces shown in live server logs, and to prevent people from using these terms and not having their message shown in logs, I forbade players from saying these.
+    message contains "ch.njol.skript", "Current trigger: function scoreboardUpdate", "[Skript] The player is not online!", "BlockPressurePlateAbstract" or "Excessive velocity set detected: tried to set velocity":
+        send "&cForbidden message." to player
+        stop
+    #End explanation.
+
+    #Greentext.
+    message contains ">":
+        replace ">" in message with "&a>"
+    message contains "/<":
+        replace "/<" in message with "&f"
+    if {globalmute} is true:    
+        if player doesn't have permission "{@permission_mutechat_exempt}":
+            cancel event
+            send "{@deny_message}" to player
+            stop
+    set {_u} to display name of player
+    {chatDelay::%player's uuid%} is true:
+        send "&7&lHey! &r&cWait a bit before sending a message."
+        stop
+    #Attempt at shadowmuting player messages:
+    if {mute::%player's uuid%} is true:
+        set {_m::*} to "fake msg 1", "fake msg 2", and "fake msg 3"
+        set {_j} to a random object out of {_m::*}
+        json("%player%", "&f%{_u}%||ttp:&7UUID: &f%player's uuid%%nl%&7Souls: &f%{souls::%player's uuid%}%||: %{_j}%")
+        player does not have permission "rbp.chatdelay":
+            chatDelay(player)
+        stop
+    loop all players:
+        loop-player has permission "rbp.debug":
+            {@opjson}
+        else:
+            {@defaultjson}
+    send "%{_u}%&f: %message%" to console
+    player does not have permission "rbp.chatdelay":
+        chatDelay(player)
+    stop
+
+function chatDelay(p: player):
+    set {_u} to uuid of {_p}
+    set {chatDelay::%{_u}%} to true
+    wait 2.35 seconds
+    delete {chatDelay::%{_u}%}
+
+
+# Test command, was never fully finished.
+command /mute [<offlineplayer>]:
+    permission: 09.mute
+    trigger:
+        if {mute::%arg 1's uuid%} is not true:
+            set {mute::%arg 1's uuid%} to true
+            send "%arg-1% mute" to player
+            stop
+        if {mute::%arg 1's uuid%} is true:
+            delete {mute::%arg 1's uuid%}
+            send "%arg-1% unmute" to player
+            stop
+
+
+command /mutechat:
+    aliases: mc, muteall, togglechat, globalchat, muteglobalchat, mgc
+    description: Toggles chat.
+    permission: {@permission_mutechat}
+    permission message: {@permission_deny_message}
+    trigger:
+        set {_displayname} to the display name of the player
+        if {globalmute} is false:
+            set {globalmute} to true
+            set {_msg} to "{@mutechat_broadcast_message}"
+            replace all "PLAYERNAME" with "%{_displayname}%" in {_msg}
+            broadcast "%{_msg}%"
+        else:
+            set {globalmute} to false
+            set {_msg} to "{@unmutechat_broadcast_message}"
+            replace all "PLAYERNAME" with "%{_displayname}%" in {_msg}
+            broadcast "%{_msg}%"
+#
+# Private messaging system. I think I stole this from someone else, and if not, then I did a really shoddy job with it.
+#
+
+command /msg [<player>] [<text>]:
+    aliases: w, m, t, pm, tell, whisper, message
+    description: Send a private message to a specific player.
+    usage: /msg <player> <message>
+    trigger:
+        {mute::%player's uuid%} is true:
+            send "&cYou can't do that."
+            stop
+        if arg 1 is not set:
+            send "&cYou can't message nobody."
+            stop
+        if arg 1 is set:
+            if arg 1 is not online:
+                send "&c%arg 1% &cis not online."
+                stop
+            if arg 1 is player:
+                send "&cYou cannot send a message to yourself."
+                stop
+            if arg 2 is not set:
+                send "&cYou've gotta send at least SOMETHING here."
+                stop
+            if arg 2 is set:
+                set {argreply.%player%} to the display name of arg 1
+                set {argreply.%arg-1%} to the display name of player
+                set {dreply.%player%} to the display name of player
+                set {reply.%arg-1%} to player
+                set {reply.arg.%player%} to arg 1
+                set {reply.%player%} to player
+                send "&eTo &7%{argreply.%player%}%&r&7: &7%arg 2%"
+                send "&eFrom &7%{dreply.%player%}%&r&7: &7%arg 2%" to arg 1
+command /r [<text>]:
+    aliases: reply
+    description: Reply to the last correspondent.
+    usage: /reply <message>
+    trigger:
+        {mute::%player's uuid%} is true:
+            send "&cYou can't do that."
+            stop
+        if arg 1 is not set:
+            if {reply.%player%} is not set:
+                send "&cYou're speaking to no-one."
+                stop
+            if {reply.%player%} is set:
+                if {reply.%player%} is online:
+                    send "&cYou've gotta send at least SOMETHING here."
+                    stop
+                else:
+                    send "%{reply.%player%}%&r&c is not online."
+                    stop
+        if arg 1 is set:
+            if {reply.%player%} is not set:
+                send "&cYou're speaking to no-one."
+                stop
+            if {argreply.%player%} is not set:
+                send "&cYou've got to message somebody first."
+                stop
+            if {reply.%player%} is set:
+                if {reply.%player%} is online:
+                    send "&eTo &7%{argreply.%player%}%&7: &7%arg 1%" to player
+                    send "&eFrom &7%{dreply.%player%}%&r&7: &7%arg 1%" to {reply.arg.%player%}
+                else:
+                    send "&c%{reply.%player%}% &r&cis not online."
+                    stop
+on quit:
+    delete {reply.%player%}
+    delete {argreply.%player%}
+    delete {dreply.%player%}
+    delete {reply.arg.%player%}
+on join:
+    delete {reply.%player%}
+    delete {argreply.%player%}
+    delete {dreply.%player%}
+    delete {reply.arg.%player%}
+#
+# End of Chat
+#

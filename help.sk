@@ -1,0 +1,84 @@
+# Help system
+command /help:
+    trigger:
+        send "&b"
+        send "&a/help &b- &7Prints this message."
+        send "&a/rules &b- &7Shows server rules."
+        send "&a/faq &b - &7Contains answers for some questions about 09project."
+        send "&a/discord &b- &7Prints a link to the 09project Discord server."
+        send "&a/class (warrior|archer|hermes|reaper) &b- &7Selects your class."
+        send "&a/shop &b- &7Allows players to purchase external items for Souls. Only works while in an arena."
+        send "&a/directbuy &7| &a/db [lb, tb, tp, bb, mw, mp] &b- &7Directly buys an item from the Shop with only a command."
+        send "&a/duel [player] &b- &7Invites a player to a duel where the first to kill each-other three times wins."
+        send "&a/options (map) &b- &7Player-specific options GUI."
+        send "&a/ping (player) &b- &7Returns the ping of a specified player."
+        send "&a/giveusyourmoney &b- &7Returns information about how you can give us your money."
+        send "&b"
+
+on join:
+    wait 5 ticks
+    {motdtype::%player's uuid%} == 0:
+        send "&b"
+        json("%player%", "  &8░░&b⬛⬛⬛&8░░░&b⬛⬛⬛&8░░  ||&a> &nHelp||ttp:&aClick here to view the help page.||cmd:/help")
+        send "  &8░&b⬛&8░░░&b⬛&8░&b⬛&8░░░&b⬛&8░"
+        json("%player%", "  &8░&b⬛&8░░&b⬛⬛&8░&b⬛&8░░░&b⬛&8░  ||&a> &nRules||ttp:&aClick here to view the server rules.||cmd:/rules")
+        send "  &8░&b⬛&8░&b⬛&8░&b⬛&8░░&b⬛⬛⬛⬛&8░"
+        json("%player%", "  &8░&b⬛⬛&8░░&b⬛&8░░░░░&b⬛&8░  ||&a> &nFAQ||ttp:&aClick here to view frequently-asked questions.||cmd:/faq")
+        send "  &8░&b⬛&8░░░&b⬛&8░░░░&b⬛&8░░"
+        json("%player%", "  &8░░&b⬛⬛⬛&8░░░&b⬛⬛&8░░░  ||&a> &nDiscord||ttp:&aClick here to join the &b09&7project &adiscord server.||url:https://cblt.me/YBVOOE")
+        send "&b"
+    {motdtype::%player's uuid%} == 1:
+        send "&c> &aWelcome to &b09&a."
+    wait 10 seconds
+    player is online:
+        count of online players is 1:
+            send "&eIt's a bit lonely here... perhaps you could invite your friends?"
+command /rules:
+    trigger:
+        send "&b"
+        send "&f1&7. &aYou &ocan &r&acheat, but don't get caught, or else I'll have to deal with you."
+        send "&f2&7. &aDon't spam or advertise in public chat or private messages."
+        send "&7&o(...is that really it?)"
+        send "&b"
+command /faq:
+    trigger:
+        send "&b"
+        #send "&a&o""Why is documentation nonexistent?"""
+        #send "    &bYes."
+        #Outdated vvv
+        #send "&a&o""Why do Duels have buttons that don't do anything?"""
+        #send "    &bDuels are extremely barebones right now, but the unused buttons will eventually be functional."
+        send "&a&o""What's the Beacon captcha? Why did that pop up when I tried to enter a command?"""
+        send "    &bSomething I made to try to get rid of bots. It's not intended to be an all-in-one solution."
+        send "&a&o""What's the deal with those strange buildings outside of the map?"""
+        send "    &bA group of friends made them quite a while ago. I'll eventually scrub them off the world and archive them, though."
+        send "&a&o""What are these things that drop when I kill someone?"""
+        send "    &bThey're health pickups that apply regeneration to the player, depending on their type."
+        send "&a&o""Why are there only a few rules?"""
+        send "    &bPersonally, I'm sick of the restrictions that most Minecraft servers have, and they're entirely within their right to do so. With 09project, I've decided to make this server's administration a breath of fresh air for both players and moderators, where you can only be punished for cheating, spamming, and advertising."
+        send "&b"
+command /discord:
+    trigger:
+        send "&b"
+        json("%player%", "         &a&nClick here to join the &b&n09project &a&nDiscord server!||url:cblt.me/YBVOOE")
+        send "&b"
+command /donate:
+    trigger:
+        #Rude.
+        send "&cWrong command, dipshit. Use &7/giveusyourmoney&c."
+command /store:
+    trigger:
+        send "&cDid you mean &7/shop&c?"
+command /giveusyourmoney:
+    trigger:
+        send "&b"
+        send "&aSo far, 09project doesn't have any real monetization system, because this server is completely unfinished."
+        send "&b"
+        send "&aThis server accepts donations &o(and no, I don't mean the ""donations"" that other servers have)&r &athrough Square Cash."
+        send "&aYou will not receive anything for donating, other than a feeling of slight regret."
+        send "&b"
+        send "&aAny amount will be very-much appreciated."
+        json("%player%", "&b&nClick here to give us your money!||url:https://cblt.me/giveusyourmoney")
+        send "&b"
+        send "&a&oP.S., if you want me to personally thank you for donating, include your Minecraft username in the reason/notes section."
+        send "&b"

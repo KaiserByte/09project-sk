@@ -1,0 +1,116 @@
+# The contents of this script were meant to be useful for myself, but I almost never used them except /changeclass when pranking my friends.
+
+on connect:
+    set {debug::check::%player's uuid%} to false
+    {debug::infinicost::%player's uuid%} is not set:
+        set {debug::infinicost::%player's uuid%} to false
+
+command /changeclass [<text>]:
+    aliases: changekit
+    permission: rbp.debug
+    trigger:
+        if arg 1 is "warrior" or "0":
+            execute console command "effect %player% clear"
+            wait 1 tick
+            kitTest(player, 1)
+        else if arg 1 is "archer" or "1":
+            execute console command "effect %player% clear"
+            wait 1 tick
+            kitArcher(player, 1)
+        else if arg 1 is "hermes" or "2":
+            execute console command "effect %player% clear"
+            wait 1 tick
+            kitHermes(player, 1)
+        else if arg 1 is "reaper" or "3":
+            execute console command "effect %player% clear"
+            wait 1 tick
+            kitReaper(player, 1)
+            execute console command "effect %player% clear"
+            wait 1 tick
+        else if arg 1 is "angler" or "4":
+            execute console command "effect %player% clear"
+            wait 1 tick
+            kitFisherman(player, 1)
+            execute console command "effect %player% clear"
+            wait 1 tick
+        else if arg 1 is "revenant" or "5":
+            execute console command "effect %player% clear"
+            wait 1 tick
+            kitRevenant(player, 1)
+            send "&aOK"
+        else:
+            send "&cwhat"
+            stop
+
+# I used this only four times.
+command /debug [<text>]:
+    aliases: dbg
+    permission: rbp.debug
+    permission message: &cInsufficient permission(s).
+    trigger:
+        if arg 1 is "toggle" or "t":
+            {debug::check::%player's uuid%} is false:
+                send "&bDebug mode activated. Enter any arena to continue." to player
+                send "&bAll changes made in the Debug menu are discarded after leaving." to player
+                set {debug::check::%player's uuid%} to true
+                stop
+            {debug::check::%player's uuid%} is true:
+                send "&bDebug mode has been deactivated." to player
+                set {debug::check::%player's uuid%} to false
+                stop
+        else if arg 1 is "fish":
+            {debug::check::%player's uuid%} is true:
+                fishGive(player)
+            else:
+                send "&cYou must have debug mode enabled to use this command!"
+        else if arg 1 is "check":
+            send "%{predebug::%player's uuid%}%"
+        else:
+            {debug::check::%player's uuid%} is false:
+                send "&cYou can't open the debug menu if you have debug mode disabled. &7&n(/debug toggle)"
+                stop
+            open virtual chest inventory with size 5 named "Debug Menu" to player
+            guiWindow5(player)
+            if {debug::infinicost::%player's uuid%} is true:
+                make gui slot 13 of player with glowing ender eye named "&fToggle Free Items" with lore "&7Toggles free items in the shop." to run function sToggle(player)
+            else:
+                make gui slot 13 of player with ender eye named "&fToggle Free Items" with lore "&7Toggles free items in the shop." to run function sToggle(player)
+            make gui slot 20 of player with cooked salmon named "&fReceive 1 Fish (Angler)" with lore "&7Gives you 1 fish. Requires the Angler class." to run function fishGive(player)
+
+# Debug toggle functions
+function dToggle(p: player):
+    set {_u} to uuid of {_p}
+    {debug::dT::%{_u}%} is false:
+        set {debug::dT::%{_u}%} to true
+        send "&cDeath-count has been disabled." to {_p}
+        make {_p} execute command "/debug"
+        stop
+    {debug::dT::%{_u}%} is true:
+        set {debug::dT::%{_u}%} to false
+        send "&aDeath-count has been enabled." to {_p}
+        make {_p} execute command "/debug"
+        stop
+function kToggle(p: player):
+    set {_u} to uuid of {_p}
+    {debug::kT::%{_u}%} is false:
+        set {debug::kT::%{_u}%} to true
+        send "&cFree Items has been disabled." to {_p}
+        make {_p} execute command "/debug"
+        stop
+    {debug::kT::%{_u}%} is true:
+        set {debug::kT::%{_u}%} to false
+        send "&aFree Items has been enabled." to {_p}
+        make {_p} execute command "/debug"
+        stop
+function sToggle(p: player):
+    set {_u} to uuid of {_p}
+    {debug::infinicost::%{_u}%} is false:
+        set {debug::infinicost::%{_u}%} to true
+        send "&cFree Items has been disabled." to {_p}
+        make {_p} execute command "/debug"
+        stop
+    {debug::infinicost::%{_u}%} is true:
+        set {debug::infinicost::%{_u}%} to false
+        send "&aFree Items has been enabled." to {_p}
+        make {_p} execute command "/debug"
+        stop

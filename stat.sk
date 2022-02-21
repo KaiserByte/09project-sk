@@ -1,0 +1,5 @@
+# Not much to see here, huh?
+command /now:
+    trigger:
+        set {_a} to now
+        send "%{_a}%"

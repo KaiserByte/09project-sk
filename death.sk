@@ -1,0 +1,266 @@
+on death:
+    clear drops
+    resetHealth(player)
+    delete {customTeleportKit::%player's uuid%}
+    delete {customTeleportLoc::%player's uuid%}
+    clear player's inventory
+    clear player's helmet
+    clear player's chestplate
+    clear player's leggings
+    clear player's boots
+    delete {hasused::%player's uuid%}
+    delete {isBlocking::%player's uuid%}
+    delete {sp::%player's uuid%}
+    {suicide::%player's uuid%} is true:
+        set death message to "&2%victim% &acouldn't take it anymore."
+        set {tempkills::%victim's uuid%} to {tempkills::%victim's uuid%}
+        stop
+    # Unused ricochet kill and debug code.
+    #{quitkill::%player's uuid%} is true:
+        #set death message to "&b&l"
+        #wait 1 tick
+        #delete {quitkill::%player's uuid%}
+    #{ricochetKill::%attacker's uuid%} is true:
+        #set death message to "%death message% &a&lRICOCHET KILL!"
+        #wait 1 tick
+        #delete {ricochetKill::%attacker's uuid%}
+on respawn:
+    clear player's inventory
+on death of a player:
+    wait 1 tick
+    attacker is a player
+    victim is offline:
+        stop
+    {uhp::%attacker's uuid%} is true:
+        # Even I don't know what this does. Have fun trying to know what this even was.
+        #if {fishcount::%player's uuid%} exists:
+        #    set {_fi} to rounded {fishcount::%player's uuid%} / 2
+        #    drop {_fi} of raw salmon named "&cHealth Pickup" at victim
+        #    wait 1 tick
+        #    delete {fishcount::%player's uuid%}
+        #    stop
+        #{ult::%victim's uuid%} is 4:
+        #    drop 1 raw salmon named "&cHealth Pickup" at victim
+        #    delete {ult::%victim's uuid%}
+        #    stop
+        set {_c} to a random integer between 0 and 3
+        delete {ult::%victim's uuid%}
+        {_c} = 0:
+            drop 1 redstone block named "&cHealth Pickup" at victim
+            stop
+        {_c} = 1:
+            drop 1 apple named "&cHealth Pickup" at victim
+            stop
+        {_c} = 2:
+            drop 1 nether wart named "&cHealth Pickup" at victim
+            stop
+        {_c} = 3:
+            drop 1 red mushroom named "&cHealth Pickup" at victim
+            stop
+    else:
+        set {_c} to a random integer between 0 and 2
+        {_c} = 0:
+            drop 1 apple named "&cHealth Pickup" at victim
+            stop
+        {_c} = 1:
+            drop 1 nether wart named "&cHealth Pickup" at victim
+            stop
+        {_c} = 2:
+            drop 1 red mushroom named "&cHealth Pickup" at victim
+            stop
+on pick up:
+    wait 1 tick
+    loop items in player's inventory:
+        name of loop-item contains "&cHealth Pickup"
+        set {_h} to player's health
+        wait 1 tick
+        loop-item is a nether wart:
+            remove 64 of loop-item from player's inventory
+            wait 1 tick
+            #set player's health to {_h} + 1
+            apply regeneration 2 to player for 5 seconds
+            stop
+        loop-item is a red mushroom:
+            remove 64 of loop-item from player's inventory
+            wait 1 tick
+            #set player's health to {_h} + 0.5
+            apply regeneration 1 to player for 10 seconds
+            stop
+        loop-item is a apple:
+            remove 64 of loop-item from player's inventory
+            wait 1 tick
+            #set player's health to {_h} + 2
+            apply regeneration 3 to player for 5 seconds
+            stop
+        loop-item is a redstone block:
+            remove 64 of loop-item from player's inventory
+            wait 1 tick
+            #set player's health to {_h} + 5
+            apply regeneration 5 to player for 5 seconds
+            stop
+        loop-item is a raw salmon:
+            remove 1 of loop-item from player's inventory
+            wait 1 tick
+            apply regeneration 5 to player for 1 second
+on place of a red mushroom, nether wart or redstone block:
+    cancel event
+command /dop <player> <number>:
+    permission: rbp.debug
+    trigger:
+        set {_h} to health of arg 1
+        set health of arg 1 to {_h} - arg 2
+on death:
+    wait 3 ticks
+    respawn the player
+    set {sd::%player's uuid%} to true
+    wait 3 seconds
+    delete {sd::%player's uuid%}
+# Soul-farming prevention (only functions when two accounts have the same IP)
+on death:
+    if attacker exists:
+        set {_n} to name of attacker
+        set {_b} to name of victim
+        {_n} = {_b}:
+            stop 
+        set {_v} to ip of victim
+        set {_a} to ip of attacker
+        {_a} = {_v}:
+            victim has permission "09.ipsoulbypass":
+                add 1 to {souls::%attacker's uuid%}
+                stop
+            attacker has permission "09.ipsoulbypass":
+                add 1 to {souls::%attacker's uuid%}
+                stop
+            send "&c%attacker% and %victim% tried to cheat the soul system." to console
+            stop
+        else:
+            add 1 to {souls::%attacker's uuid%}
+# Killstreak system
+on death of a player:
+    attacker is a player
+    wait 1 tick
+    set {_v} to ip of victim
+    set {_a} to ip of attacker
+    {_a} = {_v}:
+        stop
+    {streak::%victim's uuid%} > 4:
+        set {_streak2::%victim's uuid%} to {streak::%victim's uuid%} parsed as a number
+        set {_streak2::%victim's uuid%} to {streak::%victim's uuid%} * 3
+        add {_streak2::%victim's uuid%} to {souls::%attacker's uuid%}
+        send "&aYou've received %{_streak2::%victim's uuid%}% &asouls for killing %victim%." to attacker
+    add 1 to {streak::%attacker's uuid%}
+    delete {streak::%victim's uuid%}
+    wait 1 tick
+    if {streak::%attacker's uuid%} is 5:
+        broadcast "&b"
+        broadcast "&2%attacker% &ais on a 5-kill streak!"
+        broadcast "&b"
+    if {streak::%attacker's uuid%} is 10:
+        broadcast "&b"
+        broadcast "&2%attacker% &ais on a 10-kill streak!"
+        broadcast "&b"
+    if {streak::%attacker's uuid%} is 15:
+        broadcast "&b"
+        broadcast "&2%attacker% &ais on a 15-kill streak!"
+        broadcast "&b"
+    if {streak::%attacker's uuid%} is 25:
+        broadcast "&b"
+        broadcast "&2%attacker% &ais on a 25-kill streak!"
+        broadcast "&b"
+    if {streak::%attacker's uuid%} is 50:
+        broadcast "&b"
+        broadcast "&2%attacker% &ais on a 50-kill streak!"
+        broadcast "&b"
+    if {streak::%attacker's uuid%} is 75:
+        broadcast "&b"
+        broadcast "&2%attacker% &ais on a 75-kill streak!"
+        broadcast "&b"
+    if {streak::%attacker's uuid%} is 100:
+        broadcast "&b"
+        broadcast "&2%attacker% &ais on a 100-kill streak! This is the highest possible kill streak. Either this guy's really good, or they're cheating."
+        broadcast "&b"
+# Kill-tally
+on death of a player:
+    attacker is a player:
+        add 1 to {tempkills::%attacker's uuid%}
+        add 1 to {totalkills::%attacker's uuid%}
+    add 1 to {tempdeaths::%victim's uuid%}
+    add 1 to {totaldeaths::%victim's uuid%}
+    scoreboardUpdate(attacker)
+    scoreboardUpdate(victim)
+on quit:
+    delete {tempkills::%player's uuid%}
+    delete {tempdeaths::%player's uuid%}
+on join:
+    wait 1 tick
+    set {tempkills::%player's uuid%} to 0
+    set {tempdeaths::%player's uuid%} to 0
+    {totaldeaths::%player's uuid%} is not set:
+        set {totaldeaths::%player's uuid%} to 0
+    {totalkills::%player's uuid%} is not set:
+        set {totalkills::%player's uuid%} to 0
+    scoreboardUpdate(player)
+# An absolute mess of what you might call a "scoreboard."
+function scoreboardUpdate(p: player):
+    wipe {_p}'s sidebar
+    wait 1 tick
+    set {_u} to uuid of {_p}
+    set name of sidebar of {_p} to "&b      09&7project        "
+    #set name of sidebar of {_p} to "&f      09&cproject        "
+    set score "&b&l " in sidebar of {_p} to 9
+    if {kllscr::%{_u}%} = 0:
+        set score "&a  Kills&2: &a%{tempkills::%{_u}%}%" in sidebar of {_p} to 8
+        set score "&a  Deaths&2: &a%{tempdeaths::%{_u}%}%" in sidebar of {_p} to 7
+    if {kllscr::%{_u}%} = 1:
+        set score "&a  Total Kills&2: &a%{totalkills::%{_u}%}%" in sidebar of {_p} to 8
+        set score "&a  Total Deaths&2: &a%{totaldeaths::%{_u}%}%" in sidebar of {_p} to 7
+    {tempdeaths::%{_u}%} is 0:
+        {tempkills::%{_u}%} is 0:
+            {kllscr::%{_u}%} = 0
+            set {_c} to true
+    {totalkills::%{_u}%} = 0:
+        {totaldeaths::%{_u}%} = 0:
+            {kllscr::%{_u}%} = 1
+            set {_c} to true
+    if {_c} is true:
+        set {_v} to "0"
+    else:
+        if {kllscr::%{_u}%} = 0:
+            if {tempdeaths::%{_u}%} = 0:
+                set {_v} to "%{tempkills::%{_u}%}%"
+            else:
+                set {_v} to "%{tempkills::%{_u}%} / {tempdeaths::%{_u}%}%"
+        if {kllscr::%{_u}%} = 1:
+            if {totaldeaths::%{_u}%} = 0:
+                set {_v} to "%{totalkills::%{_u}%}%"
+            else:
+                set {_v} to "%{totalkills::%{_u}%} / {totaldeaths::%{_u}%}%"
+    set score "&a  K/D&2: &a%{_v}%" in sidebar of {_p} to 6
+    set score "&b " in sidebar of {_p} to 5
+    {map::%{_u}%} is 0:
+        set score "&a  Map&2: &aGrimworld" in sidebar of {_p} to 4
+    {map::%{_u}%} is 1:
+        set score "&a  Map&2: &aOasis" in sidebar of {_p} to 4
+    {map::%{_u}%} is 2:
+        set score "&a  Map&2: &aAztec" in sidebar of {_p} to 4
+    set score "&a  Souls&2: &a%{souls::%{_u}%}%" in sidebar of {_p} to 3
+    set score "&b&l" in sidebar of {_p} to 2
+    set score "&7       funny update &b0.4       " in sidebar of {_p} to 1
+    set score "&7             cblt.&bme          " in sidebar of {_p} to 0
+    #set score "&c       jolly update &f0.4       " in sidebar of {_p} to 1
+    #set score "&c             cblt.&fme          " in sidebar of {_p} to 0
+# Scoreboard debug commands
+command /scoreboardtest:
+    permission: rbp.debug
+    trigger:
+        scoreboardUpdate(player)
+command /scoreboardreset:
+    permission: rbp.debug
+    trigger:
+        wipe player's sidebar
+        wait 3 ticks
+        scoreboardUpdate(player)
+command /scoreboardoff:
+    permission: rbp.debug
+    trigger:
+        wipe player's sidebar
